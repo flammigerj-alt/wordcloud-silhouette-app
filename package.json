@@ -1,0 +1,30 @@
+{
+  "name": "phishing-check",
+  "version": "1.0.0",
+  "description": "Offline-Prüfung verdächtiger E-Mails: Absender, Zustellweg, Links, Inhalt und Anhänge nach nachvollziehbaren, begründeten Regeln.",
+  "type": "module",
+  "license": "MIT",
+  "bin": {
+    "phishing-check": "./bin/cli.js"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.js",
+    "build": "node build.mjs",
+    "check": "node bin/cli.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "files": [
+    "src/",
+    "bin/",
+    "dist/"
+  ],
+  "keywords": [
+    "phishing",
+    "email",
+    "sicherheit",
+    "deutsch",
+    "offline"
+  ]
+}

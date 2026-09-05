@@ -1,0 +1,921 @@
+<title>Mail-Befund</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+/* ---------------------------------------------------------------
+   Farbmarken. Helles Schema vollstaendig auf :root, damit es auch
+   im nicht gestempelten Zustand (Systemeinstellung) traegt.
+   --------------------------------------------------------------- */
+:root {
+  --grund:        #f4f6f8;
+  --flaeche:      #ffffff;
+  --flaeche-tief: #eceff3;
+  --tinte:        #14181e;
+  --tinte-leise:  #58626f;
+  --tinte-still:  #808b99;
+  --kante:        #d8dee5;
+  --kante-fein:   #e7ebf0;
+  --stahl:        #2f5d7c;
+  --stahl-hell:   #e4edf3;
+
+  --kritisch:     #a3232a;
+  --kritisch-bg:  #fbecec;
+  --hoch:         #b8481f;
+  --hoch-bg:      #fdefe8;
+  --mittel:       #96690a;
+  --mittel-bg:    #fbf3e0;
+  --niedrig:      #37618a;
+  --niedrig-bg:   #eaf1f8;
+  --gut:          #1a6647;
+  --gut-bg:       #e6f3ed;
+  --neutral:      #6b7684;
+  --neutral-bg:   #eef1f4;
+
+  --serif: 'Bitter', 'Georgia', 'Times New Roman', serif;
+  --sans: 'Source Sans 3', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', 'SFMono-Regular', 'Consolas', monospace;
+
+  --spur: 0 1px 2px rgba(20, 24, 30, .05), 0 4px 14px rgba(20, 24, 30, .05);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --grund:        #10141a;
+    --flaeche:      #191e26;
+    --flaeche-tief: #212832;
+    --tinte:        #e7ebf0;
+    --tinte-leise:  #a0abba;
+    --tinte-still:  #78838f;
+    --kante:        #2e3743;
+    --kante-fein:   #242c36;
+    --stahl:        #7fadcd;
+    --stahl-hell:   #1d2b36;
+
+    --kritisch:     #f08a8a;
+    --kritisch-bg:  #331a1c;
+    --hoch:         #f0a077;
+    --hoch-bg:      #33221a;
+    --mittel:       #ddb45c;
+    --mittel-bg:    #2e2718;
+    --niedrig:      #8db4dd;
+    --niedrig-bg:   #1b242f;
+    --gut:          #6fc79f;
+    --gut-bg:       #16291f;
+    --neutral:      #97a2b0;
+    --neutral-bg:   #212832;
+
+    --spur: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 14px rgba(0, 0, 0, .28);
+  }
+}
+
+:root[data-theme="dark"] {
+  --grund:        #10141a;
+  --flaeche:      #191e26;
+  --flaeche-tief: #212832;
+  --tinte:        #e7ebf0;
+  --tinte-leise:  #a0abba;
+  --tinte-still:  #78838f;
+  --kante:        #2e3743;
+  --kante-fein:   #242c36;
+  --stahl:        #7fadcd;
+  --stahl-hell:   #1d2b36;
+
+  --kritisch:     #f08a8a;
+  --kritisch-bg:  #331a1c;
+  --hoch:         #f0a077;
+  --hoch-bg:      #33221a;
+  --mittel:       #ddb45c;
+  --mittel-bg:    #2e2718;
+  --niedrig:      #8db4dd;
+  --niedrig-bg:   #1b242f;
+  --gut:          #6fc79f;
+  --gut-bg:       #16291f;
+  --neutral:      #97a2b0;
+  --neutral-bg:   #212832;
+
+  --spur: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 14px rgba(0, 0, 0, .28);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--grund);
+  color: var(--tinte);
+  font-family: var(--sans);
+  font-size: 16.5px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.huelle { max-width: 1080px; margin: 0 auto; padding: 0 22px 90px; }
+
+/* ---------------------------------------------------------------
+   Kopf
+   --------------------------------------------------------------- */
+.kopf {
+  border-bottom: 2px solid var(--tinte);
+  padding: 40px 0 20px;
+  margin-bottom: 30px;
+}
+.kopf h1 {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: clamp(1.9rem, 4.6vw, 2.7rem);
+  line-height: 1.12;
+  letter-spacing: -.015em;
+  margin: 0 0 10px;
+  text-wrap: balance;
+}
+.kopf p { margin: 0; color: var(--tinte-leise); max-width: 62ch; }
+.marke {
+  font-family: var(--mono);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--stahl);
+  margin-bottom: 12px;
+}
+.vertraulich {
+  display: inline-flex; align-items: baseline; gap: 8px;
+  margin-top: 16px; padding: 7px 13px;
+  background: var(--gut-bg); color: var(--gut);
+  border-radius: 3px;
+  font-size: .86rem; font-weight: 600;
+}
+
+/* ---------------------------------------------------------------
+   Eingabe
+   --------------------------------------------------------------- */
+.eingabe { display: grid; gap: 12px; margin-bottom: 34px; }
+.eingabe label {
+  font-family: var(--mono);
+  font-size: .7rem; font-weight: 600;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--tinte-leise);
+}
+textarea {
+  width: 100%; min-height: 210px; resize: vertical;
+  padding: 15px 16px;
+  background: var(--flaeche);
+  color: var(--tinte);
+  border: 1px solid var(--kante);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: .84rem;
+  line-height: 1.62;
+  tab-size: 2;
+}
+textarea:focus-visible, button:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--stahl);
+  outline-offset: 2px;
+}
+.knopfreihe { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button {
+  font-family: var(--sans);
+  font-size: .94rem; font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 4px;
+  border: 1px solid var(--kante);
+  background: var(--flaeche);
+  color: var(--tinte);
+  cursor: pointer;
+  transition: background .14s ease, border-color .14s ease;
+}
+button:hover { background: var(--flaeche-tief); border-color: var(--tinte-still); }
+button.haupt {
+  background: var(--tinte); color: var(--grund); border-color: var(--tinte);
+}
+button.haupt:hover { opacity: .87; background: var(--tinte); }
+.hinweiszeile { font-size: .87rem; color: var(--tinte-still); margin: 0; }
+
+/* ---------------------------------------------------------------
+   Urteil
+   --------------------------------------------------------------- */
+.beispielmarke {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px; padding: 9px 14px;
+  border: 1px dashed var(--kante);
+  border-radius: 4px;
+  background: var(--flaeche-tief);
+  color: var(--tinte-leise);
+  font-size: .87rem;
+}
+.beispielmarke b { color: var(--tinte); }
+
+.urteil {
+  display: grid;
+  grid-template-columns: 7px 1fr;
+  background: var(--flaeche);
+  border: 1px solid var(--kante);
+  border-radius: 5px;
+  box-shadow: var(--spur);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.urteil > .streifen { background: var(--neutral); }
+.urteil[data-stufe="rot"] > .streifen { background: var(--kritisch); }
+.urteil[data-stufe="gelb"] > .streifen { background: var(--mittel); }
+.urteil[data-stufe="gruen"] > .streifen { background: var(--gut); }
+.urteil-koerper { padding: 22px 24px; }
+
+.urteil-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; }
+.urteil h2 {
+  font-family: var(--serif); font-weight: 700;
+  font-size: clamp(1.3rem, 3.2vw, 1.75rem);
+  margin: 0; line-height: 1.2; text-wrap: balance;
+}
+.urteil[data-stufe="rot"] h2 { color: var(--kritisch); }
+.urteil[data-stufe="gelb"] h2 { color: var(--mittel); }
+.urteil[data-stufe="gruen"] h2 { color: var(--gut); }
+.urteil p { margin: 12px 0 0; color: var(--tinte-leise); max-width: 64ch; }
+
+.punktleiste { margin-top: 18px; display: grid; gap: 7px; }
+.punktleiste .zahlen {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: var(--mono); font-size: .74rem;
+  letter-spacing: .06em; text-transform: uppercase;
+  color: var(--tinte-still);
+}
+.punktleiste .zahlen b {
+  font-size: 1.05rem; color: var(--tinte);
+  font-variant-numeric: tabular-nums;
+}
+.balken {
+  height: 7px; border-radius: 4px;
+  background: var(--flaeche-tief);
+  overflow: hidden;
+}
+.balken > i { display: block; height: 100%; background: var(--neutral); }
+.urteil[data-stufe="rot"] .balken > i { background: var(--kritisch); }
+.urteil[data-stufe="gelb"] .balken > i { background: var(--mittel); }
+.urteil[data-stufe="gruen"] .balken > i { background: var(--gut); }
+
+.aussagekraft {
+  margin-top: 16px; padding-top: 15px;
+  border-top: 1px solid var(--kante-fein);
+  font-size: .9rem; color: var(--tinte-leise);
+}
+.aussagekraft b { color: var(--tinte); }
+
+/* ---------------------------------------------------------------
+   Absender-Steckbrief
+   --------------------------------------------------------------- */
+.steckbrief {
+  background: var(--flaeche);
+  border: 1px solid var(--kante);
+  border-radius: 5px;
+  padding: 18px 22px;
+  margin-bottom: 26px;
+}
+.steckbrief h3, .abschnitt > h3 {
+  font-family: var(--mono);
+  font-size: .7rem; font-weight: 600;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--tinte-still);
+  margin: 0 0 14px;
+}
+.paare { display: grid; gap: 1px; background: var(--kante-fein); border-radius: 3px; overflow: hidden; }
+.paar {
+  display: grid; grid-template-columns: 150px 1fr; gap: 14px;
+  background: var(--flaeche); padding: 9px 2px;
+}
+.paar dt { color: var(--tinte-leise); font-size: .89rem; }
+.paar dd {
+  margin: 0; font-family: var(--mono); font-size: .84rem;
+  overflow-wrap: anywhere;
+}
+.paar dd .warn { color: var(--kritisch); font-weight: 600; }
+@media (max-width: 620px) {
+  .paar { grid-template-columns: 1fr; gap: 2px; }
+}
+
+/* ---------------------------------------------------------------
+   Befundliste - Schwere als Randstreifen, keine Kartenflut
+   --------------------------------------------------------------- */
+.abschnitt { margin-bottom: 34px; }
+.gruppe { margin-bottom: 26px; }
+.gruppe > h4 {
+  font-family: var(--serif);
+  font-size: 1.06rem; font-weight: 600;
+  margin: 0 0 2px; padding-bottom: 9px;
+  border-bottom: 1px solid var(--kante);
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+}
+.gruppe > h4 span {
+  font-family: var(--mono); font-size: .72rem; font-weight: 400;
+  color: var(--tinte-still); font-variant-numeric: tabular-nums;
+}
+
+.befund {
+  border-left: 4px solid var(--neutral);
+  padding: 15px 0 15px 16px;
+  border-bottom: 1px solid var(--kante-fein);
+}
+.befund:last-child { border-bottom: 0; }
+.befund[data-schwere="kritisch"] { border-left-color: var(--kritisch); }
+.befund[data-schwere="hoch"]     { border-left-color: var(--hoch); }
+.befund[data-schwere="mittel"]   { border-left-color: var(--mittel); }
+.befund[data-schwere="niedrig"]  { border-left-color: var(--niedrig); }
+.befund[data-schwere="info"]     { border-left-color: var(--kante); }
+.befund[data-schwere="gut"]      { border-left-color: var(--gut); }
+
+.befund-kopf { display: flex; flex-wrap: wrap; gap: 9px; align-items: baseline; margin-bottom: 6px; }
+.plakette {
+  font-family: var(--mono); font-size: .64rem; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 3px; white-space: nowrap;
+  background: var(--neutral-bg); color: var(--neutral);
+}
+.befund[data-schwere="kritisch"] .plakette { background: var(--kritisch-bg); color: var(--kritisch); }
+.befund[data-schwere="hoch"] .plakette     { background: var(--hoch-bg); color: var(--hoch); }
+.befund[data-schwere="mittel"] .plakette   { background: var(--mittel-bg); color: var(--mittel); }
+.befund[data-schwere="niedrig"] .plakette  { background: var(--niedrig-bg); color: var(--niedrig); }
+.befund[data-schwere="gut"] .plakette      { background: var(--gut-bg); color: var(--gut); }
+
+.befund-titel { font-weight: 600; font-size: 1.02rem; }
+.befund-warum { margin: 0 0 10px; color: var(--tinte-leise); font-size: .94rem; max-width: 68ch; }
+
+.beweise { margin: 0 0 10px; padding: 0; list-style: none; display: grid; gap: 5px; }
+.beweise li {
+  font-family: var(--mono); font-size: .79rem; line-height: 1.5;
+  background: var(--flaeche-tief);
+  border-radius: 3px;
+  padding: 7px 10px;
+  color: var(--tinte-leise);
+  overflow-wrap: anywhere;
+}
+.rat {
+  margin: 0; font-size: .93rem;
+  padding-left: 15px; border-left: 2px solid var(--stahl);
+  color: var(--tinte);
+}
+
+/* ---------------------------------------------------------------
+   Handlungsschritte
+   --------------------------------------------------------------- */
+.schritte { counter-reset: schritt; display: grid; gap: 11px; margin: 0; padding: 0; list-style: none; }
+.schritte li {
+  counter-increment: schritt;
+  display: grid; grid-template-columns: 30px 1fr; gap: 13px;
+  align-items: start;
+}
+.schritte li::before {
+  content: counter(schritt);
+  font-family: var(--mono); font-size: .8rem; font-weight: 600;
+  color: var(--stahl);
+  background: var(--stahl-hell);
+  width: 30px; height: 30px; border-radius: 50%;
+  display: grid; place-items: center;
+}
+
+/* ---------------------------------------------------------------
+   Nachschlageteil
+   --------------------------------------------------------------- */
+.wissen { border-top: 2px solid var(--tinte); padding-top: 34px; margin-top: 46px; }
+.wissen > h2 {
+  font-family: var(--serif); font-weight: 700;
+  font-size: 1.6rem; margin: 0 0 6px;
+}
+.wissen > p.lead { margin: 0 0 26px; color: var(--tinte-leise); max-width: 64ch; }
+
+details {
+  border: 1px solid var(--kante);
+  border-radius: 5px;
+  background: var(--flaeche);
+  margin-bottom: 11px;
+  overflow: hidden;
+}
+details[open] { box-shadow: var(--spur); }
+summary {
+  cursor: pointer; list-style: none;
+  padding: 15px 20px;
+  font-family: var(--serif); font-weight: 600; font-size: 1.04rem;
+  display: flex; justify-content: space-between; align-items: center; gap: 14px;
+}
+summary::-webkit-details-marker { display: none; }
+summary::after {
+  content: '+';
+  font-family: var(--mono); font-size: 1.2rem; font-weight: 400;
+  color: var(--stahl); flex: none;
+}
+details[open] > summary::after { content: '\2212'; }
+summary:hover { background: var(--flaeche-tief); }
+.details-inhalt { padding: 2px 20px 20px; border-top: 1px solid var(--kante-fein); }
+.details-inhalt > *:first-child { margin-top: 16px; }
+.details-inhalt p, .details-inhalt li { max-width: 68ch; }
+.details-inhalt h5 {
+  font-family: var(--sans); font-size: .95rem; font-weight: 600;
+  margin: 20px 0 6px; color: var(--tinte);
+}
+.details-inhalt ul, .details-inhalt ol { padding-left: 22px; margin: 8px 0; }
+.details-inhalt li { margin-bottom: 6px; }
+.details-inhalt code {
+  font-family: var(--mono); font-size: .84em;
+  background: var(--flaeche-tief); padding: 1px 5px; border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+.details-inhalt a { color: var(--stahl); }
+
+.regel-tabelle { width: 100%; border-collapse: collapse; font-size: .92rem; margin: 10px 0; }
+.regel-tabelle th, .regel-tabelle td {
+  text-align: left; padding: 9px 12px 9px 0;
+  border-bottom: 1px solid var(--kante-fein); vertical-align: top;
+}
+.regel-tabelle th {
+  font-family: var(--mono); font-size: .68rem; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--tinte-still);
+}
+.tabellenrahmen { overflow-x: auto; }
+
+.notruf {
+  display: grid; gap: 3px;
+  background: var(--kritisch-bg);
+  border-radius: 4px; padding: 14px 18px; margin: 16px 0;
+}
+.notruf .nummer {
+  font-family: var(--mono); font-size: 1.7rem; font-weight: 600;
+  color: var(--kritisch); letter-spacing: .04em;
+}
+.notruf .was { font-size: .9rem; color: var(--tinte-leise); }
+
+.fussnote {
+  margin-top: 42px; padding-top: 18px;
+  border-top: 1px solid var(--kante);
+  font-size: .85rem; color: var(--tinte-still);
+  max-width: 68ch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+
+<div class="huelle">
+
+  <header class="kopf">
+    <div class="marke">Prüfwerkzeug für verdächtige E-Mails</div>
+    <h1>Mail-Befund</h1>
+    <p>
+      Fügt man den Originaltext einer E-Mail ein, prüft dieses Werkzeug Absender, Zustellweg,
+      Links, Formulierungen und Anhänge gegen die Muster, die bei Phishing immer wieder auftauchen —
+      und begründet jeden einzelnen Punkt, statt nur eine Zahl auszuwerfen.
+    </p>
+    <div class="vertraulich">
+      <span aria-hidden="true">&#9679;</span>
+      <span>Die Prüfung läuft vollständig in deinem Browser. Nichts wird hochgeladen, nichts gespeichert.</span>
+    </div>
+  </header>
+
+  <form class="eingabe" id="formular">
+    <label for="quelle">E-Mail einfügen — am besten als Originaltext mit Kopfzeilen</label>
+    <textarea id="quelle" spellcheck="false" aria-describedby="eingabe-hinweis"></textarea>
+    <div class="knopfreihe">
+      <button type="submit" class="haupt">Prüfen</button>
+      <button type="button" id="beispiel-knopf">Beispiel laden</button>
+      <button type="button" id="leeren-knopf">Leeren</button>
+    </div>
+    <p class="hinweiszeile" id="eingabe-hinweis">
+      Reiner Text geht auch — aber ohne Kopfzeilen fehlen die aussagekräftigsten Merkmale.
+      Wie du an den Originaltext kommst, steht weiter unten.
+    </p>
+  </form>
+
+  <div id="ergebnis" aria-live="polite"></div>
+
+  <section class="wissen">
+    <h2>Nachschlagen</h2>
+    <p class="lead">
+      Das Werkzeug prüft eine einzelne Mail. Die vier Abschnitte hier sind das, was darüber
+      hinaus hilft: selbst erkennen, an die Kopfzeilen kommen, unschädlich machen — und der
+      Notfallplan, wenn es schon passiert ist.
+    </p>
+
+    <details>
+      <summary>Die sechs Prüfschritte, die du ohne Werkzeug in 30 Sekunden machst</summary>
+      <div class="details-inhalt">
+        <p>
+          In dieser Reihenfolge. Die ersten beiden erwischen die große Mehrheit aller
+          Phishing-Mails schon allein.
+        </p>
+        <ol>
+          <li>
+            <b>Adresse hinter dem Namen ansehen.</b> Der angezeigte Name ist frei erfunden —
+            in jedem Mailprogramm. Lass dir die echte Adresse anzeigen und lies die Domain
+            <b>von rechts nach links</b>. Nur die letzten zwei Bestandteile vor dem
+            ersten Schrägstrich zählen: bei <code>sparkasse.de.login-sicher.example.top</code>
+            ist das <code>example.top</code> — und das gehört nicht der Sparkasse.
+          </li>
+          <li>
+            <b>Über jeden Link fahren, ohne zu klicken.</b> Am Rechner zeigt dein Programm das
+            echte Ziel unten links an. Auf dem Handy: Link lange gedrückt halten, dann erscheint
+            die Adresse. Weicht sie vom sichtbaren Text ab, ist die Sache erledigt.
+          </li>
+          <li>
+            <b>Frag dich, ob du das erwartet hast.</b> Unerwartete Rechnungen, Paketmeldungen zu
+            nicht bestellten Paketen, Kontowarnungen für Konten, die du nicht hast — das
+            ist der häufigste Aufhänger überhaupt.
+          </li>
+          <li>
+            <b>Zeitdruck ist ein Angriffsmerkmal, kein Servicemerkmal.</b> „Innerhalb von
+            24 Stunden", „letzte Mahnung", „sonst wird gesperrt". Kein seriöses Unternehmen
+            arbeitet so. Der Druck existiert nur, damit du nicht nachdenkst.
+          </li>
+          <li>
+            <b>Niemand fragt per Mail nach PIN, TAN oder Passwort.</b> Diese Regel hat keine
+            Ausnahme — nicht bei Banken, nicht bei Behörden, nicht „zur Sicherheitsüberprüfung".
+          </li>
+          <li>
+            <b>Geht es um Geld oder Zugang: Seite selbst aufrufen.</b> Nicht über den Link,
+            sondern Adresse selbst tippen oder gespeichertes Lesezeichen benutzen. Ist die
+            Meldung echt, findest du sie dort auch.
+          </li>
+        </ol>
+        <h5>Die drei gefährlichsten Sonderfälle</h5>
+        <ul>
+          <li>
+            <b>Geänderte Bankverbindung.</b> Eine echte Geschäftsbeziehung wird abgefangen und
+            die Rechnung mit neuer IBAN weitergeleitet. Immer telefonisch rückfragen — unter der
+            Nummer aus deinen <em>alten</em> Unterlagen, nie unter der aus der Mail.
+          </li>
+          <li>
+            <b>QR-Code statt Link.</b> Umgeht jeden Filter und verlagert den Klick aufs Handy,
+            wo die Adresse kaum sichtbar ist. QR-Codes aus E-Mails grundsätzlich nicht scannen.
+          </li>
+          <li>
+            <b>Die Bitte, es für dich zu behalten.</b> „Vertraulich", „bespricht das bitte mit
+            niemandem", „ich bin gerade im Meeting". Genau diese Bitte ist das Erkennungszeichen.
+          </li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>So kommst du an den Originaltext mit den Kopfzeilen</summary>
+      <div class="details-inhalt">
+        <p>
+          Die Kopfzeilen sind das Fahrtenbuch der Mail: über welche Server sie lief und ob der
+          Absenderserver überhaupt für diese Domain verschicken durfte. Ohne sie ist jede
+          Prüfung Halbwissen.
+        </p>
+        <div class="tabellenrahmen">
+          <table class="regel-tabelle">
+            <thead>
+              <tr><th>Programm</th><th>Weg</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Gmail (Web)</td><td>Mail öffnen &rarr; die drei Punkte oben rechts <em>in der Mail</em> &rarr; „Original anzeigen"</td></tr>
+              <tr><td>Outlook (Web)</td><td>Mail öffnen &rarr; drei Punkte &rarr; „Ansicht" &rarr; „Nachrichtendetails anzeigen"</td></tr>
+              <tr><td>Outlook (Windows)</td><td>Mail doppelt öffnen &rarr; „Datei" &rarr; „Eigenschaften" &rarr; Feld „Internetkopfzeilen"</td></tr>
+              <tr><td>Apple Mail</td><td>„Darstellung" &rarr; „E-Mail" &rarr; „Alle Header"</td></tr>
+              <tr><td>Thunderbird</td><td>Mail markieren &rarr; <code>Strg</code>+<code>U</code> (Quelltext anzeigen)</td></tr>
+              <tr><td>GMX / Web.de</td><td>Mail öffnen &rarr; „Mehr" bzw. Zahnrad &rarr; „Quelltext anzeigen"</td></tr>
+              <tr><td>T-Online</td><td>Mail öffnen &rarr; drei Punkte &rarr; „Quelltext anzeigen"</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h5>Was du im Kopf selbst nachlesen kannst</h5>
+        <ul>
+          <li><code>Authentication-Results:</code> — hier stehen <code>spf=</code>, <code>dkim=</code> und <code>dmarc=</code>. Steht dort <code>fail</code>, ist die Absenderadresse mit hoher Wahrscheinlichkeit gefälscht.</li>
+          <li><code>Return-Path:</code> und <code>Reply-To:</code> — zeigen sie auf eine andere Domain als <code>From:</code>, ist das ein starkes Warnzeichen.</li>
+          <li><code>Received:</code> — die <em>unterste</em> dieser Zeilen nennt den Ursprung. Die IP-Adresse darin kannst du bei einem Whois-Dienst nachschlagen.</li>
+        </ul>
+        <p>
+          <b>Wichtig:</b> Ein bestandenes <code>spf=pass</code> beweist nur, dass die Mail
+          tatsächlich von dieser Domain kam — nicht, dass die Domain ehrlich ist. Betrüger
+          registrieren eigene Domains und richten die Technik korrekt ein.
+        </p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Unschädlich machen: melden, blockieren, künftig abfangen</summary>
+      <div class="details-inhalt">
+        <h5>1. Melden — das kostet dich zwei Minuten und hilft anderen</h5>
+        <ul>
+          <li>
+            <b>Verbraucherzentrale:</b> Mail <em>als Anhang</em> weiterleiten an
+            <code>phishing@verbraucherzentrale.nrw</code>. Als Anhang deshalb, weil dabei die
+            Kopfzeilen erhalten bleiben — beim normalen Weiterleiten gehen sie verloren.
+          </li>
+          <li>
+            <b>Beim angeblichen Absender:</b> Fast jede größere Firma und Bank hat eine
+            Meldeadresse. Die findest du auf ihrer echten Webseite — nicht in der Mail.
+          </li>
+          <li>
+            <b>Als Spam markieren</b>, statt nur zu löschen. Nur so lernt der Filter deines
+            Anbieters dazu und fängt die nächste Welle ab.
+          </li>
+        </ul>
+        <h5>2. Nicht tun</h5>
+        <ul>
+          <li><b>Nicht antworten</b> — auch nicht wütend. Eine Antwort bestätigt nur, dass deine Adresse aktiv gelesen wird, und macht sie wertvoller.</li>
+          <li><b>Nicht abmelden.</b> Der „Abmelden"-Link in einer Betrugsmail ist ein Klick wie jeder andere.</li>
+          <li><b>Keine Bilder nachladen.</b> Nachgeladene Bilder melden dem Absender, dass die Mail geöffnet wurde. Die meisten Programme blockieren das ab Werk — lass es so.</li>
+        </ul>
+        <h5>3. Damit die nächste gar nicht erst durchkommt</h5>
+        <ul>
+          <li>
+            <b>Zwei-Faktor-Anmeldung</b> überall aktivieren, wo es sie gibt — vor allem für
+            das Mailkonto selbst. Wer dein Postfach hat, kann bei allen anderen Diensten
+            das Passwort zurücksetzen. Das Postfach ist der Generalschlüssel.
+          </li>
+          <li>
+            <b>Passwortmanager benutzen.</b> Der stärkste Schutz gegen Phishing ganz nebenbei:
+            Ein Passwortmanager füllt auf einer gefälschten Domain schlicht nichts aus.
+            Dieses Ausbleiben ist eine Warnung, die du nicht übersehen kannst.
+          </li>
+          <li>
+            <b>Dateiendungen sichtbar machen.</b> In Windows im Explorer unter „Ansicht" die
+            Dateinamenerweiterungen einblenden. Sonst siehst du bei <code>rechnung.pdf.exe</code>
+            nur <code>rechnung.pdf</code>.
+          </li>
+          <li>
+            <b>Prüfen, wo deine Adresse schon geleakt ist:</b> der Identity Leak Checker des
+            Hasso-Plattner-Instituts (<code>sec.hpi.de</code>) oder
+            <code>haveibeenpwned.com</code>. Was dort auftaucht, ist genau das Material, mit dem
+            personalisierte Angriffe gebaut werden.
+          </li>
+          <li>
+            <b>Absender blockieren</b> hilft wenig — Absenderadressen sind Wegwerfware und beim
+            nächsten Mal anders. Filter auf Betreff oder Inhalt bringen mehr als Filter auf die Adresse.
+          </li>
+        </ul>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Wenn es schon passiert ist: der Notfallplan</summary>
+      <div class="details-inhalt">
+        <p>
+          Der Reihe nach, und zwar sofort. Bei Geldabfluss zählt bei manchen Schritten jede Stunde.
+        </p>
+
+        <div class="notruf">
+          <div class="nummer">116 116</div>
+          <div class="was">
+            Sperr-Notruf, rund um die Uhr, kostenlos. Sperrt Girokarte, Kreditkarte und
+            Online-Banking-Zugang. Aus dem Ausland: <code>+49 116 116</code>.
+            Zusätzlich immer auch die eigene Bank direkt anrufen.
+          </div>
+        </div>
+
+        <ol>
+          <li>
+            <b>Bank anrufen, sofort.</b> Bei einer noch nicht ausgeführten oder gerade erst
+            ausgeführten Überweisung kann die Bank einen <em>Überweisungsrückruf</em> versuchen.
+            Das gelingt nur in einem sehr kurzen Zeitfenster — deshalb zuerst.
+          </li>
+          <li>
+            <b>Zugänge sperren und Passwörter ändern.</b> Zuerst das Passwort des betroffenen
+            Dienstes, dann das des Mailkontos, dann überall dort, wo du dasselbe Passwort
+            benutzt hast. Von einem Gerät aus, dem du vertraust.
+          </li>
+          <li>
+            <b>Strafanzeige erstatten.</b> Bei jeder Polizeidienststelle oder online über die
+            Internetwache deines Bundeslands. Das Aktenzeichen brauchst du für die
+            Auseinandersetzung mit der Bank und für die Versicherung.
+          </li>
+          <li>
+            <b>Alles sichern, bevor du löschst.</b> Die Mail als Datei speichern (im Programm
+            über „Speichern unter"), Screenshots der Seite, Überweisungsbelege, Uhrzeiten.
+            Ohne die Kopfzeilen ist die Mail als Beweis wenig wert.
+          </li>
+          <li>
+            <b>Gerät prüfen,</b> falls du einen Anhang geöffnet oder eine Datei heruntergeladen
+            hast. Im Zweifel von einem sauberen Gerät aus alle wichtigen Passwörter ändern.
+          </li>
+          <li>
+            <b>Kontobewegungen weiter beobachten.</b> Oft folgt auf einen kleinen Testabbuchung
+            wenig später der große Betrag. Auch Lastschriften kannst du innerhalb von acht
+            Wochen zurückgeben lassen.
+          </li>
+        </ol>
+
+        <h5>Bekomme ich das Geld zurück?</h5>
+        <p>
+          Das hängt an einer einzigen Unterscheidung, und die solltest du kennen, bevor du mit
+          der Bank sprichst:
+        </p>
+        <ul>
+          <li>
+            <b>Nicht autorisierte Zahlung</b> — jemand hat mit erbeuteten Daten in deinem Namen
+            gezahlt, ohne dass du eine TAN freigegeben hast. Dann muss die Bank den Betrag nach
+            <code>§ 675u BGB</code> unverzüglich erstatten. Diesen Anspruch solltest du
+            ausdrücklich geltend machen.
+          </li>
+          <li>
+            <b>Autorisierte Zahlung</b> — du hast selbst eine TAN freigegeben oder überwiesen,
+            weil du getäuscht wurdest. Das ist rechtlich schwieriger; die Bank prüft dann, ob dir
+            grobe Fahrlässigkeit vorzuwerfen ist (<code>§ 675v BGB</code>). Aussichtslos ist es
+            aber nicht — es kommt auf den Einzelfall an.
+          </li>
+        </ul>
+        <p>
+          Lass dich in beiden Fällen beraten, bevor du eine Erklärung der Bank unterschreibst:
+          die Verbraucherzentrale deines Bundeslands bietet dafür eine kostengünstige
+          Rechtsberatung an. Das hier ersetzt keine Rechtsberatung im Einzelfall.
+        </p>
+
+        <h5>Wenn Kriminelle deine Identität benutzen</h5>
+        <p>
+          Kommen Rechnungen oder Mahnungen für Bestellungen, die du nie gemacht hast: den
+          Forderungen schriftlich widersprechen, Anzeige-Aktenzeichen beilegen und bei der SCHUFA
+          eine Selbstauskunft anfordern, um zu sehen, was in deinem Namen läuft.
+        </p>
+      </div>
+    </details>
+  </section>
+
+  <p class="fussnote">
+    Dieses Werkzeug bewertet Merkmale, keine Absichten. Ein grünes Ergebnis ist kein Freibrief:
+    gut gemachte Angriffe bestehen jede automatische Prüfung. Bleibt ein Bauchgefühl, ist der
+    Anruf beim angeblichen Absender — unter einer Nummer, die du selbst herausgesucht hast —
+    immer noch die sicherste Prüfung, die es gibt.
+  </p>
+
+</div>
+
+<script>
+/* __PRUEFKERN__ */
+/* __BEISPIEL__ */
+
+(() => {
+  'use strict';
+
+  const feld = document.getElementById('quelle');
+  const ziel = document.getElementById('ergebnis');
+  const formular = document.getElementById('formular');
+
+  const SCHWERE_TEXT = {
+    kritisch: 'Kritisch',
+    hoch: 'Hoch',
+    mittel: 'Mittel',
+    niedrig: 'Niedrig',
+    info: 'Hinweis',
+    gut: 'Unauffällig',
+  };
+
+  const KATEGORIE_TEXT = {
+    Absender: 'Absender',
+    Links: 'Links und eingebettete Inhalte',
+    Inhalt: 'Formulierungen',
+    'Anhänge': 'Anhänge',
+    Technik: 'Technische Herkunft',
+  };
+
+  const sicher = (wert) => String(wert ?? '').replace(/[&<>"']/g, (z) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[z]
+  ));
+
+  function baueSteckbrief(bericht) {
+    if (!bericht.kopf.istMail) return '';
+    const a = bericht.absender;
+    const zeilen = [];
+    const zeile = (bezeichnung, wert, warnen) => {
+      if (!wert) return;
+      zeilen.push(
+        '<div class="paar"><dt>' + sicher(bezeichnung) + '</dt><dd' +
+        (warnen ? ' class="warn"' : '') + '>' + sicher(wert) + '</dd></div>'
+      );
+    };
+    zeile('Angezeigter Name', a.anzeigename);
+    zeile('Tatsächliche Adresse', a.adresse || '(nicht lesbar)');
+    zeile('Registrierbare Domain', a.registrierbareDomain);
+    if (a.antwortAn && a.antwortAn !== a.adresse) {
+      zeilen.push('<div class="paar"><dt>Antworten gehen an</dt><dd><span class="warn">' +
+        sicher(a.antwortAn) + '</span></dd></div>');
+    }
+    zeile('Betreff', bericht.kopf.betreff);
+    zeile('Datum', bericht.kopf.datum);
+    if (bericht.anhaenge.length) {
+      zeile('Anhänge', bericht.anhaenge.map((x) => x.name || '(ohne Namen)').join(', '));
+    }
+    if (!zeilen.length) return '';
+    return '<section class="steckbrief"><h3>Steckbrief</h3><dl class="paare">' +
+      zeilen.join('') + '</dl></section>';
+  }
+
+  function baueBefunde(bericht) {
+    const gruppen = new Map();
+    for (const b of bericht.befunde) {
+      if (!gruppen.has(b.kategorie)) gruppen.set(b.kategorie, []);
+      gruppen.get(b.kategorie).push(b);
+    }
+    if (!gruppen.size) return '';
+
+    let html = '<section class="abschnitt"><h3>Befunde im Einzelnen</h3>';
+    for (const [kategorie, liste] of gruppen) {
+      const wertend = liste.filter((b) => b.gewicht > 0).length;
+      html += '<div class="gruppe"><h4>' + sicher(KATEGORIE_TEXT[kategorie] || kategorie) +
+        '<span>' + (wertend ? wertend + ' von ' + liste.length + ' auffällig' : 'unauffällig') +
+        '</span></h4>';
+      for (const b of liste) {
+        html += '<article class="befund" data-schwere="' + sicher(b.schwere) + '">' +
+          '<div class="befund-kopf">' +
+          '<span class="plakette">' + sicher(SCHWERE_TEXT[b.schwere] || b.schwere) + '</span>' +
+          '<span class="befund-titel">' + sicher(b.titel) + '</span>' +
+          '</div>' +
+          '<p class="befund-warum">' + sicher(b.erklaerung) + '</p>';
+        if (b.beweis && b.beweis.length) {
+          html += '<ul class="beweise">' +
+            b.beweis.map((x) => '<li>' + sicher(x) + '</li>').join('') + '</ul>';
+        }
+        if (b.rat) html += '<p class="rat">' + sicher(b.rat) + '</p>';
+        html += '</article>';
+      }
+      html += '</div>';
+    }
+    return html + '</section>';
+  }
+
+  function zeichne(bericht, istBeispiel) {
+    const u = bericht.urteil;
+    let html = '';
+
+    if (istBeispiel) {
+      html += '<div class="beispielmarke"><b>Beispiel.</b> Das ist eine nachgebaute ' +
+        'Phishing-Mail, damit du siehst, was das Werkzeug tut. Füge oben deine eigene Mail ein.</div>';
+    }
+
+    html +=
+      '<section class="urteil" data-stufe="' + sicher(bericht.stufe) + '">' +
+      '<div class="streifen"></div>' +
+      '<div class="urteil-koerper">' +
+      '<div class="urteil-kopf"><h2>' + sicher(u.name) + '</h2></div>' +
+      '<p>' + sicher(u.text) + '</p>' +
+      '<div class="punktleiste">' +
+      '<div class="zahlen"><span>Risikopunkte</span><b>' + bericht.punkte + ' / 100</b></div>' +
+      '<div class="balken"><i style="width:' + Math.max(bericht.punkte, 2) + '%"></i></div>' +
+      '</div>' +
+      '<p class="aussagekraft"><b>Aussagekraft dieser Prüfung: ' +
+      sicher(bericht.sicherheit.stufe) + '.</b> ' + sicher(bericht.sicherheit.text) + '</p>' +
+      '</div></section>';
+
+    html += baueSteckbrief(bericht);
+
+    html += '<section class="abschnitt"><h3>Was du jetzt tun solltest</h3><ol class="schritte">' +
+      bericht.naechsteSchritte.map((s) => '<li><span>' + sicher(s) + '</span></li>').join('') +
+      '</ol></section>';
+
+    html += baueBefunde(bericht);
+
+    ziel.innerHTML = html;
+  }
+
+  function pruefe(istBeispiel) {
+    const roh = feld.value;
+    if (!roh.trim()) {
+      ziel.innerHTML = '<section class="urteil" data-stufe="gruen"><div class="streifen"></div>' +
+        '<div class="urteil-koerper"><h2>Nichts zu prüfen</h2>' +
+        '<p>Füge oben den Text der Mail ein — am besten den Originaltext samt Kopfzeilen.</p>' +
+        '</div></section>';
+      return;
+    }
+    try {
+      zeichne(analysiere(roh), istBeispiel);
+    } catch (fehler) {
+      ziel.innerHTML = '<section class="urteil" data-stufe="gelb"><div class="streifen"></div>' +
+        '<div class="urteil-koerper"><h2>Die Prüfung ist abgebrochen</h2>' +
+        '<p>Der eingefügte Text konnte nicht zerlegt werden: ' + sicher(fehler.message) +
+        '. Versuch es mit dem Originaltext der Mail statt mit einem Screenshot-Text.</p>' +
+        '</div></section>';
+    }
+  }
+
+  formular.addEventListener('submit', (e) => {
+    e.preventDefault();
+    pruefe(false);
+    ziel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  document.getElementById('beispiel-knopf').addEventListener('click', () => {
+    feld.value = BEISPIEL_MAIL;
+    pruefe(true);
+  });
+
+  document.getElementById('leeren-knopf').addEventListener('click', () => {
+    feld.value = '';
+    feld.focus();
+    ziel.innerHTML = '';
+  });
+
+  // Datei per Ziehen und Ablegen: .eml direkt einlesen.
+  feld.addEventListener('dragover', (e) => e.preventDefault());
+  feld.addEventListener('drop', (e) => {
+    const datei = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (!datei) return;
+    e.preventDefault();
+    const leser = new FileReader();
+    leser.onload = () => { feld.value = String(leser.result); pruefe(false); };
+    leser.readAsText(datei);
+  });
+
+  // Beim Laden mit dem Beispiel starten, damit sofort sichtbar ist, was das Werkzeug leistet.
+  feld.value = BEISPIEL_MAIL;
+  pruefe(true);
+})();
+</script>

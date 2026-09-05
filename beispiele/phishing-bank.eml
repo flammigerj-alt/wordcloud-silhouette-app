@@ -1,0 +1,30 @@
+Return-Path: <bounce@mailer-77.example-host.top>
+Received: from mail-77.example-host.top ([185.234.219.14])
+	by mx.provider.de with ESMTP id 4Rb2fk0Xz1
+	for <max.mustermann@provider.de>; Tue, 12 Aug 2025 03:14:07 +0200
+Authentication-Results: mx.provider.de;
+	spf=fail (sender IP is 185.234.219.14) smtp.mailfrom=example-host.top;
+	dkim=none header.d=sparkasse-sicherheit.top;
+	dmarc=fail (p=REJECT) header.from=sparkasse-sicherheit.top
+From: "Sparkasse Sicherheitsteam" <noreply@sparkasse-sicherheit.top>
+Reply-To: kundenservice.sparkasse@gmx-support.icu
+To: max.mustermann@provider.de
+Subject: =?UTF-8?B?SWhyIEtvbnRvIHd1cmRlIGdlc3BlcnJ0IC0gc29mb3J0aWdlcyBIYW5kZWxuIGVyZm9yZGVybGljaA==?=
+Date: Tue, 12 Aug 2025 03:14:05 +0200
+Message-ID: <20250812031405.7712@mailer-77.example-host.top>
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+Content-Transfer-Encoding: quoted-printable
+
+<html><body>
+<p>Sehr geehrter Kunde,</p>
+<p>aus Sicherheitsgr=C3=BCnden wurde Ihr Online-Banking-Zugang
+<b>vor=C3=BCbergehend gesperrt</b>. Bitte best=C3=A4tigen Sie Ihre Daten
+innerhalb von 24 Stunden, andernfalls erfolgt die endg=C3=BCltige
+Kontoschlie=C3=9Fung und eine Geb=C3=BChr von 49,90 EUR wird f=C3=A4llig.</p>
+<p><a href=3D"http://sparkasse.de.sicher-login.example-host.top/verify?token=
+=3Dxk29">https://www.sparkasse.de/kundenportal</a></p>
+<p>Halten Sie Ihre PIN und eine g=C3=BCltige TAN bereit.</p>
+<p style=3D"font-size:0">lorem ipsum dolor sit amet consectetur</p>
+<p style=3D"display:none">unsichtbarer fuelltext gegen spamfilter</p>
+</body></html>

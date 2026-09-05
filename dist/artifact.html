@@ -1,0 +1,2980 @@
+<title>Mail-Befund</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bitter:wght@500;600;700&family=Source+Sans+3:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;600&display=swap">
+
+<style>
+/* ---------------------------------------------------------------
+   Farbmarken. Helles Schema vollstaendig auf :root, damit es auch
+   im nicht gestempelten Zustand (Systemeinstellung) traegt.
+   --------------------------------------------------------------- */
+:root {
+  --grund:        #f4f6f8;
+  --flaeche:      #ffffff;
+  --flaeche-tief: #eceff3;
+  --tinte:        #14181e;
+  --tinte-leise:  #58626f;
+  --tinte-still:  #808b99;
+  --kante:        #d8dee5;
+  --kante-fein:   #e7ebf0;
+  --stahl:        #2f5d7c;
+  --stahl-hell:   #e4edf3;
+
+  --kritisch:     #a3232a;
+  --kritisch-bg:  #fbecec;
+  --hoch:         #b8481f;
+  --hoch-bg:      #fdefe8;
+  --mittel:       #96690a;
+  --mittel-bg:    #fbf3e0;
+  --niedrig:      #37618a;
+  --niedrig-bg:   #eaf1f8;
+  --gut:          #1a6647;
+  --gut-bg:       #e6f3ed;
+  --neutral:      #6b7684;
+  --neutral-bg:   #eef1f4;
+
+  --serif: 'Bitter', 'Georgia', 'Times New Roman', serif;
+  --sans: 'Source Sans 3', 'Segoe UI', system-ui, -apple-system, sans-serif;
+  --mono: 'JetBrains Mono', 'SFMono-Regular', 'Consolas', monospace;
+
+  --spur: 0 1px 2px rgba(20, 24, 30, .05), 0 4px 14px rgba(20, 24, 30, .05);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --grund:        #10141a;
+    --flaeche:      #191e26;
+    --flaeche-tief: #212832;
+    --tinte:        #e7ebf0;
+    --tinte-leise:  #a0abba;
+    --tinte-still:  #78838f;
+    --kante:        #2e3743;
+    --kante-fein:   #242c36;
+    --stahl:        #7fadcd;
+    --stahl-hell:   #1d2b36;
+
+    --kritisch:     #f08a8a;
+    --kritisch-bg:  #331a1c;
+    --hoch:         #f0a077;
+    --hoch-bg:      #33221a;
+    --mittel:       #ddb45c;
+    --mittel-bg:    #2e2718;
+    --niedrig:      #8db4dd;
+    --niedrig-bg:   #1b242f;
+    --gut:          #6fc79f;
+    --gut-bg:       #16291f;
+    --neutral:      #97a2b0;
+    --neutral-bg:   #212832;
+
+    --spur: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 14px rgba(0, 0, 0, .28);
+  }
+}
+
+:root[data-theme="dark"] {
+  --grund:        #10141a;
+  --flaeche:      #191e26;
+  --flaeche-tief: #212832;
+  --tinte:        #e7ebf0;
+  --tinte-leise:  #a0abba;
+  --tinte-still:  #78838f;
+  --kante:        #2e3743;
+  --kante-fein:   #242c36;
+  --stahl:        #7fadcd;
+  --stahl-hell:   #1d2b36;
+
+  --kritisch:     #f08a8a;
+  --kritisch-bg:  #331a1c;
+  --hoch:         #f0a077;
+  --hoch-bg:      #33221a;
+  --mittel:       #ddb45c;
+  --mittel-bg:    #2e2718;
+  --niedrig:      #8db4dd;
+  --niedrig-bg:   #1b242f;
+  --gut:          #6fc79f;
+  --gut-bg:       #16291f;
+  --neutral:      #97a2b0;
+  --neutral-bg:   #212832;
+
+  --spur: 0 1px 2px rgba(0, 0, 0, .3), 0 4px 14px rgba(0, 0, 0, .28);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--grund);
+  color: var(--tinte);
+  font-family: var(--sans);
+  font-size: 16.5px;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+}
+
+.huelle { max-width: 1080px; margin: 0 auto; padding: 0 22px 90px; }
+
+/* ---------------------------------------------------------------
+   Kopf
+   --------------------------------------------------------------- */
+.kopf {
+  border-bottom: 2px solid var(--tinte);
+  padding: 40px 0 20px;
+  margin-bottom: 30px;
+}
+.kopf h1 {
+  font-family: var(--serif);
+  font-weight: 700;
+  font-size: clamp(1.9rem, 4.6vw, 2.7rem);
+  line-height: 1.12;
+  letter-spacing: -.015em;
+  margin: 0 0 10px;
+  text-wrap: balance;
+}
+.kopf p { margin: 0; color: var(--tinte-leise); max-width: 62ch; }
+.marke {
+  font-family: var(--mono);
+  font-size: .68rem;
+  font-weight: 600;
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--stahl);
+  margin-bottom: 12px;
+}
+.vertraulich {
+  display: inline-flex; align-items: baseline; gap: 8px;
+  margin-top: 16px; padding: 7px 13px;
+  background: var(--gut-bg); color: var(--gut);
+  border-radius: 3px;
+  font-size: .86rem; font-weight: 600;
+}
+
+/* ---------------------------------------------------------------
+   Eingabe
+   --------------------------------------------------------------- */
+.eingabe { display: grid; gap: 12px; margin-bottom: 34px; }
+.eingabe label {
+  font-family: var(--mono);
+  font-size: .7rem; font-weight: 600;
+  letter-spacing: .12em; text-transform: uppercase;
+  color: var(--tinte-leise);
+}
+textarea {
+  width: 100%; min-height: 210px; resize: vertical;
+  padding: 15px 16px;
+  background: var(--flaeche);
+  color: var(--tinte);
+  border: 1px solid var(--kante);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: .84rem;
+  line-height: 1.62;
+  tab-size: 2;
+}
+textarea:focus-visible, button:focus-visible, summary:focus-visible {
+  outline: 2px solid var(--stahl);
+  outline-offset: 2px;
+}
+.knopfreihe { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+button {
+  font-family: var(--sans);
+  font-size: .94rem; font-weight: 600;
+  padding: 10px 20px;
+  border-radius: 4px;
+  border: 1px solid var(--kante);
+  background: var(--flaeche);
+  color: var(--tinte);
+  cursor: pointer;
+  transition: background .14s ease, border-color .14s ease;
+}
+button:hover { background: var(--flaeche-tief); border-color: var(--tinte-still); }
+button.haupt {
+  background: var(--tinte); color: var(--grund); border-color: var(--tinte);
+}
+button.haupt:hover { opacity: .87; background: var(--tinte); }
+.hinweiszeile { font-size: .87rem; color: var(--tinte-still); margin: 0; }
+
+/* ---------------------------------------------------------------
+   Urteil
+   --------------------------------------------------------------- */
+.beispielmarke {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px; padding: 9px 14px;
+  border: 1px dashed var(--kante);
+  border-radius: 4px;
+  background: var(--flaeche-tief);
+  color: var(--tinte-leise);
+  font-size: .87rem;
+}
+.beispielmarke b { color: var(--tinte); }
+
+.urteil {
+  display: grid;
+  grid-template-columns: 7px 1fr;
+  background: var(--flaeche);
+  border: 1px solid var(--kante);
+  border-radius: 5px;
+  box-shadow: var(--spur);
+  overflow: hidden;
+  margin-bottom: 12px;
+}
+.urteil > .streifen { background: var(--neutral); }
+.urteil[data-stufe="rot"] > .streifen { background: var(--kritisch); }
+.urteil[data-stufe="gelb"] > .streifen { background: var(--mittel); }
+.urteil[data-stufe="gruen"] > .streifen { background: var(--gut); }
+.urteil-koerper { padding: 22px 24px; }
+
+.urteil-kopf { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px 16px; }
+.urteil h2 {
+  font-family: var(--serif); font-weight: 700;
+  font-size: clamp(1.3rem, 3.2vw, 1.75rem);
+  margin: 0; line-height: 1.2; text-wrap: balance;
+}
+.urteil[data-stufe="rot"] h2 { color: var(--kritisch); }
+.urteil[data-stufe="gelb"] h2 { color: var(--mittel); }
+.urteil[data-stufe="gruen"] h2 { color: var(--gut); }
+.urteil p { margin: 12px 0 0; color: var(--tinte-leise); max-width: 64ch; }
+
+.punktleiste { margin-top: 18px; display: grid; gap: 7px; }
+.punktleiste .zahlen {
+  display: flex; justify-content: space-between; align-items: baseline;
+  font-family: var(--mono); font-size: .74rem;
+  letter-spacing: .06em; text-transform: uppercase;
+  color: var(--tinte-still);
+}
+.punktleiste .zahlen b {
+  font-size: 1.05rem; color: var(--tinte);
+  font-variant-numeric: tabular-nums;
+}
+.balken {
+  height: 7px; border-radius: 4px;
+  background: var(--flaeche-tief);
+  overflow: hidden;
+}
+.balken > i { display: block; height: 100%; background: var(--neutral); }
+.urteil[data-stufe="rot"] .balken > i { background: var(--kritisch); }
+.urteil[data-stufe="gelb"] .balken > i { background: var(--mittel); }
+.urteil[data-stufe="gruen"] .balken > i { background: var(--gut); }
+
+.aussagekraft {
+  margin-top: 16px; padding-top: 15px;
+  border-top: 1px solid var(--kante-fein);
+  font-size: .9rem; color: var(--tinte-leise);
+}
+.aussagekraft b { color: var(--tinte); }
+
+/* ---------------------------------------------------------------
+   Absender-Steckbrief
+   --------------------------------------------------------------- */
+.steckbrief {
+  background: var(--flaeche);
+  border: 1px solid var(--kante);
+  border-radius: 5px;
+  padding: 18px 22px;
+  margin-bottom: 26px;
+}
+.steckbrief h3, .abschnitt > h3 {
+  font-family: var(--mono);
+  font-size: .7rem; font-weight: 600;
+  letter-spacing: .14em; text-transform: uppercase;
+  color: var(--tinte-still);
+  margin: 0 0 14px;
+}
+.paare { display: grid; gap: 1px; background: var(--kante-fein); border-radius: 3px; overflow: hidden; }
+.paar {
+  display: grid; grid-template-columns: 150px 1fr; gap: 14px;
+  background: var(--flaeche); padding: 9px 2px;
+}
+.paar dt { color: var(--tinte-leise); font-size: .89rem; }
+.paar dd {
+  margin: 0; font-family: var(--mono); font-size: .84rem;
+  overflow-wrap: anywhere;
+}
+.paar dd .warn { color: var(--kritisch); font-weight: 600; }
+@media (max-width: 620px) {
+  .paar { grid-template-columns: 1fr; gap: 2px; }
+}
+
+/* ---------------------------------------------------------------
+   Befundliste - Schwere als Randstreifen, keine Kartenflut
+   --------------------------------------------------------------- */
+.abschnitt { margin-bottom: 34px; }
+.gruppe { margin-bottom: 26px; }
+.gruppe > h4 {
+  font-family: var(--serif);
+  font-size: 1.06rem; font-weight: 600;
+  margin: 0 0 2px; padding-bottom: 9px;
+  border-bottom: 1px solid var(--kante);
+  display: flex; justify-content: space-between; align-items: baseline; gap: 12px;
+}
+.gruppe > h4 span {
+  font-family: var(--mono); font-size: .72rem; font-weight: 400;
+  color: var(--tinte-still); font-variant-numeric: tabular-nums;
+}
+
+.befund {
+  border-left: 4px solid var(--neutral);
+  padding: 15px 0 15px 16px;
+  border-bottom: 1px solid var(--kante-fein);
+}
+.befund:last-child { border-bottom: 0; }
+.befund[data-schwere="kritisch"] { border-left-color: var(--kritisch); }
+.befund[data-schwere="hoch"]     { border-left-color: var(--hoch); }
+.befund[data-schwere="mittel"]   { border-left-color: var(--mittel); }
+.befund[data-schwere="niedrig"]  { border-left-color: var(--niedrig); }
+.befund[data-schwere="info"]     { border-left-color: var(--kante); }
+.befund[data-schwere="gut"]      { border-left-color: var(--gut); }
+
+.befund-kopf { display: flex; flex-wrap: wrap; gap: 9px; align-items: baseline; margin-bottom: 6px; }
+.plakette {
+  font-family: var(--mono); font-size: .64rem; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase;
+  padding: 3px 8px; border-radius: 3px; white-space: nowrap;
+  background: var(--neutral-bg); color: var(--neutral);
+}
+.befund[data-schwere="kritisch"] .plakette { background: var(--kritisch-bg); color: var(--kritisch); }
+.befund[data-schwere="hoch"] .plakette     { background: var(--hoch-bg); color: var(--hoch); }
+.befund[data-schwere="mittel"] .plakette   { background: var(--mittel-bg); color: var(--mittel); }
+.befund[data-schwere="niedrig"] .plakette  { background: var(--niedrig-bg); color: var(--niedrig); }
+.befund[data-schwere="gut"] .plakette      { background: var(--gut-bg); color: var(--gut); }
+
+.befund-titel { font-weight: 600; font-size: 1.02rem; }
+.befund-warum { margin: 0 0 10px; color: var(--tinte-leise); font-size: .94rem; max-width: 68ch; }
+
+.beweise { margin: 0 0 10px; padding: 0; list-style: none; display: grid; gap: 5px; }
+.beweise li {
+  font-family: var(--mono); font-size: .79rem; line-height: 1.5;
+  background: var(--flaeche-tief);
+  border-radius: 3px;
+  padding: 7px 10px;
+  color: var(--tinte-leise);
+  overflow-wrap: anywhere;
+}
+.rat {
+  margin: 0; font-size: .93rem;
+  padding-left: 15px; border-left: 2px solid var(--stahl);
+  color: var(--tinte);
+}
+
+/* ---------------------------------------------------------------
+   Handlungsschritte
+   --------------------------------------------------------------- */
+.schritte { counter-reset: schritt; display: grid; gap: 11px; margin: 0; padding: 0; list-style: none; }
+.schritte li {
+  counter-increment: schritt;
+  display: grid; grid-template-columns: 30px 1fr; gap: 13px;
+  align-items: start;
+}
+.schritte li::before {
+  content: counter(schritt);
+  font-family: var(--mono); font-size: .8rem; font-weight: 600;
+  color: var(--stahl);
+  background: var(--stahl-hell);
+  width: 30px; height: 30px; border-radius: 50%;
+  display: grid; place-items: center;
+}
+
+/* ---------------------------------------------------------------
+   Nachschlageteil
+   --------------------------------------------------------------- */
+.wissen { border-top: 2px solid var(--tinte); padding-top: 34px; margin-top: 46px; }
+.wissen > h2 {
+  font-family: var(--serif); font-weight: 700;
+  font-size: 1.6rem; margin: 0 0 6px;
+}
+.wissen > p.lead { margin: 0 0 26px; color: var(--tinte-leise); max-width: 64ch; }
+
+details {
+  border: 1px solid var(--kante);
+  border-radius: 5px;
+  background: var(--flaeche);
+  margin-bottom: 11px;
+  overflow: hidden;
+}
+details[open] { box-shadow: var(--spur); }
+summary {
+  cursor: pointer; list-style: none;
+  padding: 15px 20px;
+  font-family: var(--serif); font-weight: 600; font-size: 1.04rem;
+  display: flex; justify-content: space-between; align-items: center; gap: 14px;
+}
+summary::-webkit-details-marker { display: none; }
+summary::after {
+  content: '+';
+  font-family: var(--mono); font-size: 1.2rem; font-weight: 400;
+  color: var(--stahl); flex: none;
+}
+details[open] > summary::after { content: '\2212'; }
+summary:hover { background: var(--flaeche-tief); }
+.details-inhalt { padding: 2px 20px 20px; border-top: 1px solid var(--kante-fein); }
+.details-inhalt > *:first-child { margin-top: 16px; }
+.details-inhalt p, .details-inhalt li { max-width: 68ch; }
+.details-inhalt h5 {
+  font-family: var(--sans); font-size: .95rem; font-weight: 600;
+  margin: 20px 0 6px; color: var(--tinte);
+}
+.details-inhalt ul, .details-inhalt ol { padding-left: 22px; margin: 8px 0; }
+.details-inhalt li { margin-bottom: 6px; }
+.details-inhalt code {
+  font-family: var(--mono); font-size: .84em;
+  background: var(--flaeche-tief); padding: 1px 5px; border-radius: 3px;
+  overflow-wrap: anywhere;
+}
+.details-inhalt a { color: var(--stahl); }
+
+.regel-tabelle { width: 100%; border-collapse: collapse; font-size: .92rem; margin: 10px 0; }
+.regel-tabelle th, .regel-tabelle td {
+  text-align: left; padding: 9px 12px 9px 0;
+  border-bottom: 1px solid var(--kante-fein); vertical-align: top;
+}
+.regel-tabelle th {
+  font-family: var(--mono); font-size: .68rem; font-weight: 600;
+  letter-spacing: .1em; text-transform: uppercase; color: var(--tinte-still);
+}
+.tabellenrahmen { overflow-x: auto; }
+
+.notruf {
+  display: grid; gap: 3px;
+  background: var(--kritisch-bg);
+  border-radius: 4px; padding: 14px 18px; margin: 16px 0;
+}
+.notruf .nummer {
+  font-family: var(--mono); font-size: 1.7rem; font-weight: 600;
+  color: var(--kritisch); letter-spacing: .04em;
+}
+.notruf .was { font-size: .9rem; color: var(--tinte-leise); }
+
+.fussnote {
+  margin-top: 42px; padding-top: 18px;
+  border-top: 1px solid var(--kante);
+  font-size: .85rem; color: var(--tinte-still);
+  max-width: 68ch;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { transition: none !important; animation: none !important; }
+}
+</style>
+
+<div class="huelle">
+
+  <header class="kopf">
+    <div class="marke">Prüfwerkzeug für verdächtige E-Mails</div>
+    <h1>Mail-Befund</h1>
+    <p>
+      Fügt man den Originaltext einer E-Mail ein, prüft dieses Werkzeug Absender, Zustellweg,
+      Links, Formulierungen und Anhänge gegen die Muster, die bei Phishing immer wieder auftauchen —
+      und begründet jeden einzelnen Punkt, statt nur eine Zahl auszuwerfen.
+    </p>
+    <div class="vertraulich">
+      <span aria-hidden="true">&#9679;</span>
+      <span>Die Prüfung läuft vollständig in deinem Browser. Nichts wird hochgeladen, nichts gespeichert.</span>
+    </div>
+  </header>
+
+  <form class="eingabe" id="formular">
+    <label for="quelle">E-Mail einfügen — am besten als Originaltext mit Kopfzeilen</label>
+    <textarea id="quelle" spellcheck="false" aria-describedby="eingabe-hinweis"></textarea>
+    <div class="knopfreihe">
+      <button type="submit" class="haupt">Prüfen</button>
+      <button type="button" id="beispiel-knopf">Beispiel laden</button>
+      <button type="button" id="leeren-knopf">Leeren</button>
+    </div>
+    <p class="hinweiszeile" id="eingabe-hinweis">
+      Reiner Text geht auch — aber ohne Kopfzeilen fehlen die aussagekräftigsten Merkmale.
+      Wie du an den Originaltext kommst, steht weiter unten.
+    </p>
+  </form>
+
+  <div id="ergebnis" aria-live="polite"></div>
+
+  <section class="wissen">
+    <h2>Nachschlagen</h2>
+    <p class="lead">
+      Das Werkzeug prüft eine einzelne Mail. Die vier Abschnitte hier sind das, was darüber
+      hinaus hilft: selbst erkennen, an die Kopfzeilen kommen, unschädlich machen — und der
+      Notfallplan, wenn es schon passiert ist.
+    </p>
+
+    <details>
+      <summary>Die sechs Prüfschritte, die du ohne Werkzeug in 30 Sekunden machst</summary>
+      <div class="details-inhalt">
+        <p>
+          In dieser Reihenfolge. Die ersten beiden erwischen die große Mehrheit aller
+          Phishing-Mails schon allein.
+        </p>
+        <ol>
+          <li>
+            <b>Adresse hinter dem Namen ansehen.</b> Der angezeigte Name ist frei erfunden —
+            in jedem Mailprogramm. Lass dir die echte Adresse anzeigen und lies die Domain
+            <b>von rechts nach links</b>. Nur die letzten zwei Bestandteile vor dem
+            ersten Schrägstrich zählen: bei <code>sparkasse.de.login-sicher.example.top</code>
+            ist das <code>example.top</code> — und das gehört nicht der Sparkasse.
+          </li>
+          <li>
+            <b>Über jeden Link fahren, ohne zu klicken.</b> Am Rechner zeigt dein Programm das
+            echte Ziel unten links an. Auf dem Handy: Link lange gedrückt halten, dann erscheint
+            die Adresse. Weicht sie vom sichtbaren Text ab, ist die Sache erledigt.
+          </li>
+          <li>
+            <b>Frag dich, ob du das erwartet hast.</b> Unerwartete Rechnungen, Paketmeldungen zu
+            nicht bestellten Paketen, Kontowarnungen für Konten, die du nicht hast — das
+            ist der häufigste Aufhänger überhaupt.
+          </li>
+          <li>
+            <b>Zeitdruck ist ein Angriffsmerkmal, kein Servicemerkmal.</b> „Innerhalb von
+            24 Stunden", „letzte Mahnung", „sonst wird gesperrt". Kein seriöses Unternehmen
+            arbeitet so. Der Druck existiert nur, damit du nicht nachdenkst.
+          </li>
+          <li>
+            <b>Niemand fragt per Mail nach PIN, TAN oder Passwort.</b> Diese Regel hat keine
+            Ausnahme — nicht bei Banken, nicht bei Behörden, nicht „zur Sicherheitsüberprüfung".
+          </li>
+          <li>
+            <b>Geht es um Geld oder Zugang: Seite selbst aufrufen.</b> Nicht über den Link,
+            sondern Adresse selbst tippen oder gespeichertes Lesezeichen benutzen. Ist die
+            Meldung echt, findest du sie dort auch.
+          </li>
+        </ol>
+        <h5>Die drei gefährlichsten Sonderfälle</h5>
+        <ul>
+          <li>
+            <b>Geänderte Bankverbindung.</b> Eine echte Geschäftsbeziehung wird abgefangen und
+            die Rechnung mit neuer IBAN weitergeleitet. Immer telefonisch rückfragen — unter der
+            Nummer aus deinen <em>alten</em> Unterlagen, nie unter der aus der Mail.
+          </li>
+          <li>
+            <b>QR-Code statt Link.</b> Umgeht jeden Filter und verlagert den Klick aufs Handy,
+            wo die Adresse kaum sichtbar ist. QR-Codes aus E-Mails grundsätzlich nicht scannen.
+          </li>
+          <li>
+            <b>Die Bitte, es für dich zu behalten.</b> „Vertraulich", „bespricht das bitte mit
+            niemandem", „ich bin gerade im Meeting". Genau diese Bitte ist das Erkennungszeichen.
+          </li>
+        </ul>
+      </div>
+    </details>
+
+    <details>
+      <summary>So kommst du an den Originaltext mit den Kopfzeilen</summary>
+      <div class="details-inhalt">
+        <p>
+          Die Kopfzeilen sind das Fahrtenbuch der Mail: über welche Server sie lief und ob der
+          Absenderserver überhaupt für diese Domain verschicken durfte. Ohne sie ist jede
+          Prüfung Halbwissen.
+        </p>
+        <div class="tabellenrahmen">
+          <table class="regel-tabelle">
+            <thead>
+              <tr><th>Programm</th><th>Weg</th></tr>
+            </thead>
+            <tbody>
+              <tr><td>Gmail (Web)</td><td>Mail öffnen &rarr; die drei Punkte oben rechts <em>in der Mail</em> &rarr; „Original anzeigen"</td></tr>
+              <tr><td>Outlook (Web)</td><td>Mail öffnen &rarr; drei Punkte &rarr; „Ansicht" &rarr; „Nachrichtendetails anzeigen"</td></tr>
+              <tr><td>Outlook (Windows)</td><td>Mail doppelt öffnen &rarr; „Datei" &rarr; „Eigenschaften" &rarr; Feld „Internetkopfzeilen"</td></tr>
+              <tr><td>Apple Mail</td><td>„Darstellung" &rarr; „E-Mail" &rarr; „Alle Header"</td></tr>
+              <tr><td>Thunderbird</td><td>Mail markieren &rarr; <code>Strg</code>+<code>U</code> (Quelltext anzeigen)</td></tr>
+              <tr><td>GMX / Web.de</td><td>Mail öffnen &rarr; „Mehr" bzw. Zahnrad &rarr; „Quelltext anzeigen"</td></tr>
+              <tr><td>T-Online</td><td>Mail öffnen &rarr; drei Punkte &rarr; „Quelltext anzeigen"</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <h5>Was du im Kopf selbst nachlesen kannst</h5>
+        <ul>
+          <li><code>Authentication-Results:</code> — hier stehen <code>spf=</code>, <code>dkim=</code> und <code>dmarc=</code>. Steht dort <code>fail</code>, ist die Absenderadresse mit hoher Wahrscheinlichkeit gefälscht.</li>
+          <li><code>Return-Path:</code> und <code>Reply-To:</code> — zeigen sie auf eine andere Domain als <code>From:</code>, ist das ein starkes Warnzeichen.</li>
+          <li><code>Received:</code> — die <em>unterste</em> dieser Zeilen nennt den Ursprung. Die IP-Adresse darin kannst du bei einem Whois-Dienst nachschlagen.</li>
+        </ul>
+        <p>
+          <b>Wichtig:</b> Ein bestandenes <code>spf=pass</code> beweist nur, dass die Mail
+          tatsächlich von dieser Domain kam — nicht, dass die Domain ehrlich ist. Betrüger
+          registrieren eigene Domains und richten die Technik korrekt ein.
+        </p>
+      </div>
+    </details>
+
+    <details>
+      <summary>Unschädlich machen: melden, blockieren, künftig abfangen</summary>
+      <div class="details-inhalt">
+        <h5>1. Melden — das kostet dich zwei Minuten und hilft anderen</h5>
+        <ul>
+          <li>
+            <b>Verbraucherzentrale:</b> Mail <em>als Anhang</em> weiterleiten an
+            <code>phishing@verbraucherzentrale.nrw</code>. Als Anhang deshalb, weil dabei die
+            Kopfzeilen erhalten bleiben — beim normalen Weiterleiten gehen sie verloren.
+          </li>
+          <li>
+            <b>Beim angeblichen Absender:</b> Fast jede größere Firma und Bank hat eine
+            Meldeadresse. Die findest du auf ihrer echten Webseite — nicht in der Mail.
+          </li>
+          <li>
+            <b>Als Spam markieren</b>, statt nur zu löschen. Nur so lernt der Filter deines
+            Anbieters dazu und fängt die nächste Welle ab.
+          </li>
+        </ul>
+        <h5>2. Nicht tun</h5>
+        <ul>
+          <li><b>Nicht antworten</b> — auch nicht wütend. Eine Antwort bestätigt nur, dass deine Adresse aktiv gelesen wird, und macht sie wertvoller.</li>
+          <li><b>Nicht abmelden.</b> Der „Abmelden"-Link in einer Betrugsmail ist ein Klick wie jeder andere.</li>
+          <li><b>Keine Bilder nachladen.</b> Nachgeladene Bilder melden dem Absender, dass die Mail geöffnet wurde. Die meisten Programme blockieren das ab Werk — lass es so.</li>
+        </ul>
+        <h5>3. Damit die nächste gar nicht erst durchkommt</h5>
+        <ul>
+          <li>
+            <b>Zwei-Faktor-Anmeldung</b> überall aktivieren, wo es sie gibt — vor allem für
+            das Mailkonto selbst. Wer dein Postfach hat, kann bei allen anderen Diensten
+            das Passwort zurücksetzen. Das Postfach ist der Generalschlüssel.
+          </li>
+          <li>
+            <b>Passwortmanager benutzen.</b> Der stärkste Schutz gegen Phishing ganz nebenbei:
+            Ein Passwortmanager füllt auf einer gefälschten Domain schlicht nichts aus.
+            Dieses Ausbleiben ist eine Warnung, die du nicht übersehen kannst.
+          </li>
+          <li>
+            <b>Dateiendungen sichtbar machen.</b> In Windows im Explorer unter „Ansicht" die
+            Dateinamenerweiterungen einblenden. Sonst siehst du bei <code>rechnung.pdf.exe</code>
+            nur <code>rechnung.pdf</code>.
+          </li>
+          <li>
+            <b>Prüfen, wo deine Adresse schon geleakt ist:</b> der Identity Leak Checker des
+            Hasso-Plattner-Instituts (<code>sec.hpi.de</code>) oder
+            <code>haveibeenpwned.com</code>. Was dort auftaucht, ist genau das Material, mit dem
+            personalisierte Angriffe gebaut werden.
+          </li>
+          <li>
+            <b>Absender blockieren</b> hilft wenig — Absenderadressen sind Wegwerfware und beim
+            nächsten Mal anders. Filter auf Betreff oder Inhalt bringen mehr als Filter auf die Adresse.
+          </li>
+        </ul>
+      </div>
+    </details>
+
+    <details open>
+      <summary>Wenn es schon passiert ist: der Notfallplan</summary>
+      <div class="details-inhalt">
+        <p>
+          Der Reihe nach, und zwar sofort. Bei Geldabfluss zählt bei manchen Schritten jede Stunde.
+        </p>
+
+        <div class="notruf">
+          <div class="nummer">116 116</div>
+          <div class="was">
+            Sperr-Notruf, rund um die Uhr, kostenlos. Sperrt Girokarte, Kreditkarte und
+            Online-Banking-Zugang. Aus dem Ausland: <code>+49 116 116</code>.
+            Zusätzlich immer auch die eigene Bank direkt anrufen.
+          </div>
+        </div>
+
+        <ol>
+          <li>
+            <b>Bank anrufen, sofort.</b> Bei einer noch nicht ausgeführten oder gerade erst
+            ausgeführten Überweisung kann die Bank einen <em>Überweisungsrückruf</em> versuchen.
+            Das gelingt nur in einem sehr kurzen Zeitfenster — deshalb zuerst.
+          </li>
+          <li>
+            <b>Zugänge sperren und Passwörter ändern.</b> Zuerst das Passwort des betroffenen
+            Dienstes, dann das des Mailkontos, dann überall dort, wo du dasselbe Passwort
+            benutzt hast. Von einem Gerät aus, dem du vertraust.
+          </li>
+          <li>
+            <b>Strafanzeige erstatten.</b> Bei jeder Polizeidienststelle oder online über die
+            Internetwache deines Bundeslands. Das Aktenzeichen brauchst du für die
+            Auseinandersetzung mit der Bank und für die Versicherung.
+          </li>
+          <li>
+            <b>Alles sichern, bevor du löschst.</b> Die Mail als Datei speichern (im Programm
+            über „Speichern unter"), Screenshots der Seite, Überweisungsbelege, Uhrzeiten.
+            Ohne die Kopfzeilen ist die Mail als Beweis wenig wert.
+          </li>
+          <li>
+            <b>Gerät prüfen,</b> falls du einen Anhang geöffnet oder eine Datei heruntergeladen
+            hast. Im Zweifel von einem sauberen Gerät aus alle wichtigen Passwörter ändern.
+          </li>
+          <li>
+            <b>Kontobewegungen weiter beobachten.</b> Oft folgt auf einen kleinen Testabbuchung
+            wenig später der große Betrag. Auch Lastschriften kannst du innerhalb von acht
+            Wochen zurückgeben lassen.
+          </li>
+        </ol>
+
+        <h5>Bekomme ich das Geld zurück?</h5>
+        <p>
+          Das hängt an einer einzigen Unterscheidung, und die solltest du kennen, bevor du mit
+          der Bank sprichst:
+        </p>
+        <ul>
+          <li>
+            <b>Nicht autorisierte Zahlung</b> — jemand hat mit erbeuteten Daten in deinem Namen
+            gezahlt, ohne dass du eine TAN freigegeben hast. Dann muss die Bank den Betrag nach
+            <code>§ 675u BGB</code> unverzüglich erstatten. Diesen Anspruch solltest du
+            ausdrücklich geltend machen.
+          </li>
+          <li>
+            <b>Autorisierte Zahlung</b> — du hast selbst eine TAN freigegeben oder überwiesen,
+            weil du getäuscht wurdest. Das ist rechtlich schwieriger; die Bank prüft dann, ob dir
+            grobe Fahrlässigkeit vorzuwerfen ist (<code>§ 675v BGB</code>). Aussichtslos ist es
+            aber nicht — es kommt auf den Einzelfall an.
+          </li>
+        </ul>
+        <p>
+          Lass dich in beiden Fällen beraten, bevor du eine Erklärung der Bank unterschreibst:
+          die Verbraucherzentrale deines Bundeslands bietet dafür eine kostengünstige
+          Rechtsberatung an. Das hier ersetzt keine Rechtsberatung im Einzelfall.
+        </p>
+
+        <h5>Wenn Kriminelle deine Identität benutzen</h5>
+        <p>
+          Kommen Rechnungen oder Mahnungen für Bestellungen, die du nie gemacht hast: den
+          Forderungen schriftlich widersprechen, Anzeige-Aktenzeichen beilegen und bei der SCHUFA
+          eine Selbstauskunft anfordern, um zu sehen, was in deinem Namen läuft.
+        </p>
+      </div>
+    </details>
+  </section>
+
+  <p class="fussnote">
+    Dieses Werkzeug bewertet Merkmale, keine Absichten. Ein grünes Ergebnis ist kein Freibrief:
+    gut gemachte Angriffe bestehen jede automatische Prüfung. Bleibt ein Bauchgefühl, ist der
+    Anruf beim angeblichen Absender — unter einer Nummer, die du selbst herausgesucht hast —
+    immer noch die sicherste Prüfung, die es gibt.
+  </p>
+
+</div>
+
+<script>
+// ----- src/data.js -----
+const __M_data_js = (() => {
+  /**
+   * Nachschlagewerk für die Regeln: Marken, Freemail-Anbieter, Kürzungsdienste,
+   * riskante Dateitypen und Signalwörter (deutsch und englisch).
+   *
+   * Alle Listen sind bewusst offen gehalten - sie sollen häufige Fälle abdecken,
+   * nicht Vollständigkeit vortäuschen.
+   */
+  
+  /** Marken, die in Deutschland besonders oft missbraucht werden. */
+  const IMPERSONATED_BRANDS = [
+    { token: 'paypal', label: 'PayPal', domains: ['paypal.com', 'paypal.de'] },
+    { token: 'sparkasse', label: 'Sparkasse', domains: ['sparkasse.de'] },
+    { token: 'volksbank', label: 'Volksbank', domains: ['volksbank.de', 'vr.de'] },
+    { token: 'raiffeisen', label: 'Raiffeisenbank', domains: ['raiffeisen.de', 'vr.de'] },
+    { token: 'commerzbank', label: 'Commerzbank', domains: ['commerzbank.de'] },
+    { token: 'postbank', label: 'Postbank', domains: ['postbank.de'] },
+    { token: 'deutsche-bank', label: 'Deutsche Bank', domains: ['deutsche-bank.de', 'db.com'] },
+    { token: 'targobank', label: 'Targobank', domains: ['targobank.de'] },
+    { token: 'comdirect', label: 'comdirect', domains: ['comdirect.de'] },
+    { token: 'consorsbank', label: 'Consorsbank', domains: ['consorsbank.de'] },
+    { token: 'dkb', label: 'DKB', domains: ['dkb.de'] },
+    { token: 'ing', label: 'ING', domains: ['ing.de'] },
+    { token: 'n26', label: 'N26', domains: ['n26.com'] },
+    { token: 'klarna', label: 'Klarna', domains: ['klarna.com', 'klarna.de'] },
+    { token: 'amazon', label: 'Amazon', domains: ['amazon.de', 'amazon.com'] },
+    { token: 'apple', label: 'Apple', domains: ['apple.com', 'icloud.com'] },
+    { token: 'microsoft', label: 'Microsoft', domains: ['microsoft.com', 'office.com', 'live.com'] },
+    { token: 'google', label: 'Google', domains: ['google.com', 'google.de'] },
+    { token: 'netflix', label: 'Netflix', domains: ['netflix.com'] },
+    { token: 'disney', label: 'Disney+', domains: ['disneyplus.com'] },
+    { token: 'spotify', label: 'Spotify', domains: ['spotify.com'] },
+    { token: 'telekom', label: 'Telekom', domains: ['telekom.de', 't-online.de'] },
+    { token: 'vodafone', label: 'Vodafone', domains: ['vodafone.de'] },
+    { token: 'o2', label: 'o2', domains: ['o2online.de', 'telefonica.de'] },
+    { token: '1und1', label: '1&1', domains: ['1und1.de', 'ionos.de'] },
+    { token: 'dhl', label: 'DHL', domains: ['dhl.de', 'dhl.com'] },
+    { token: 'hermes', label: 'Hermes', domains: ['myhermes.de', 'hermesworld.com'] },
+    { token: 'gls', label: 'GLS', domains: ['gls-pakete.de', 'gls-group.eu'] },
+    { token: 'dpd', label: 'DPD', domains: ['dpd.de', 'dpd.com'] },
+    { token: 'ups', label: 'UPS', domains: ['ups.com'] },
+    { token: 'fedex', label: 'FedEx', domains: ['fedex.com'] },
+    { token: 'deutsche-post', label: 'Deutsche Post', domains: ['deutschepost.de'] },
+    { token: 'ebay', label: 'eBay', domains: ['ebay.de', 'ebay.com'] },
+    { token: 'kleinanzeigen', label: 'Kleinanzeigen', domains: ['kleinanzeigen.de'] },
+    { token: 'otto', label: 'OTTO', domains: ['otto.de'] },
+    { token: 'zalando', label: 'Zalando', domains: ['zalando.de'] },
+    { token: 'shein', label: 'SHEIN', domains: ['shein.com'] },
+    { token: 'elster', label: 'ELSTER', domains: ['elster.de'] },
+    { token: 'finanzamt', label: 'Finanzamt', domains: ['elster.de', 'bzst.de'] },
+    { token: 'zoll', label: 'Zoll', domains: ['zoll.de'] },
+    { token: 'bundesagentur', label: 'Bundesagentur für Arbeit', domains: ['arbeitsagentur.de'] },
+    { token: 'rundfunkbeitrag', label: 'Rundfunkbeitrag', domains: ['rundfunkbeitrag.de'] },
+    { token: 'schufa', label: 'SCHUFA', domains: ['schufa.de'] },
+    { token: 'bitpanda', label: 'Bitpanda', domains: ['bitpanda.com'] },
+    { token: 'coinbase', label: 'Coinbase', domains: ['coinbase.com'] },
+    { token: 'binance', label: 'Binance', domains: ['binance.com'] },
+    { token: 'whatsapp', label: 'WhatsApp', domains: ['whatsapp.com'] },
+    { token: 'instagram', label: 'Instagram', domains: ['instagram.com'] },
+    { token: 'facebook', label: 'Facebook', domains: ['facebook.com'] },
+    { token: 'linkedin', label: 'LinkedIn', domains: ['linkedin.com'] },
+  ];
+  
+  /** Freemail-Anbieter. Eine Firma oder Behörde schreibt nicht von hier. */
+  const FREEMAIL_DOMAINS = new Set([
+    'gmail.com', 'googlemail.com', 'gmx.de', 'gmx.net', 'gmx.at', 'gmx.ch',
+    'web.de', 'outlook.com', 'outlook.de', 'hotmail.com', 'hotmail.de',
+    'live.com', 'live.de', 'yahoo.com', 'yahoo.de', 'aol.com', 'aol.de',
+    't-online.de', 'freenet.de', 'mail.ru', 'yandex.ru', 'yandex.com',
+    'protonmail.com', 'proton.me', 'tutanota.com', 'tuta.io', 'zoho.com',
+    'mail.com', 'icloud.com', 'me.com', 'inbox.lv', 'seznam.cz', 'qq.com',
+    '163.com', '126.com', 'rediffmail.com',
+  ]);
+  
+  /** Wegwerf-Adressen: in seriöser Geschäftspost praktisch nie zu sehen. */
+  const DISPOSABLE_DOMAINS = new Set([
+    'mailinator.com', 'guerrillamail.com', 'yopmail.com', 'trashmail.com',
+    '10minutemail.com', 'temp-mail.org', 'tempmail.com', 'sharklasers.com',
+    'getnada.com', 'dispostable.com', 'maildrop.cc', 'moakt.com',
+  ]);
+  
+  /** URL-Kürzungsdienste verstecken das eigentliche Ziel. */
+  const URL_SHORTENERS = new Set([
+    'bit.ly', 'tinyurl.com', 't.co', 'goo.gl', 'ow.ly', 'is.gd', 'buff.ly',
+    'cutt.ly', 'rb.gy', 'shorturl.at', 'rebrand.ly', 's.id', 'lnkd.in',
+    'tiny.cc', 'shorte.st', 'bl.ink', 'clck.ru', 'v.gd', 'qr.ae', 'urlz.fr',
+    'short.io', 'kurzelinks.de', 'tinyurl.de', 'l.ead.me', 'x.co', 'mcaf.ee',
+  ]);
+  
+  /** Top-Level-Domains mit auffällig hohem Missbrauchsanteil. */
+  const RISKY_TLDS = new Set([
+    'zip', 'mov', 'top', 'xyz', 'icu', 'click', 'link', 'rest', 'quest',
+    'cfd', 'sbs', 'buzz', 'work', 'country', 'gq', 'tk', 'ml', 'cf', 'ga',
+    'monster', 'bar', 'cyou', 'lol', 'kim', 'autos', 'boats', 'live',
+    'shop', 'fit', 'beauty', 'hair', 'skin', 'mom', 'wiki', 'su', 'ru',
+  ]);
+  
+  /**
+   * Dateiendungen nach Risiko. Die Gewichte fließen direkt in die Bewertung ein.
+   */
+  const EXTENSION_RISK = {
+    // Wird beim Doppelklick sofort ausgeführt.
+    ausfuehrbar: {
+      schwere: 'kritisch',
+      gewicht: 40,
+      endungen: ['exe', 'scr', 'com', 'pif', 'bat', 'cmd', 'msi', 'msix', 'msp',
+        'vbs', 'vbe', 'js', 'jse', 'wsf', 'wsh', 'ps1', 'psm1', 'hta', 'jar',
+        'lnk', 'cpl', 'reg', 'inf', 'chm', 'scf', 'application', 'gadget',
+        'appx', 'apk', 'dll', 'sys', 'pyz'],
+      hinweis: 'Diese Endung wird beim Doppelklick direkt ausgeführt. Seriöse Absender verschicken so etwas nie per Mail.',
+    },
+    // Container, die den Mark-of-the-Web umgehen und Schadcode einschleusen.
+    container: {
+      schwere: 'hoch',
+      gewicht: 32,
+      endungen: ['iso', 'img', 'vhd', 'vhdx', 'cab', 'ace', 'arj', 'daa'],
+      hinweis: 'Solche Container-Dateien werden benutzt, um Windows-Schutzmechanismen auszuhebeln.',
+    },
+    // Office-Dokumente mit Makros.
+    makro: {
+      schwere: 'hoch',
+      gewicht: 30,
+      endungen: ['docm', 'xlsm', 'pptm', 'xlam', 'dotm', 'xltm', 'potm', 'ppam', 'one'],
+      hinweis: 'Makro-fähiges Dokument. Makros sind ein klassischer Weg, Schadsoftware nachzuladen.',
+    },
+    // Lokale Phishing-Seite im Anhang (HTML Smuggling).
+    webseite: {
+      schwere: 'hoch',
+      gewicht: 28,
+      endungen: ['html', 'htm', 'shtml', 'xhtml', 'mht', 'mhtml', 'svg', 'xht'],
+      hinweis: 'Eine Webseite im Anhang ist fast immer eine nachgebaute Login-Maske, die lokal geöffnet wird und dabei jeden Link-Filter umgeht.',
+    },
+    // Ältere Office-Formate, die Makros enthalten können.
+    altesOffice: {
+      schwere: 'mittel',
+      gewicht: 16,
+      endungen: ['doc', 'xls', 'ppt', 'rtf', 'pub', 'xll', 'wbk'],
+      hinweis: 'Altes Office-Format, das Makros oder Exploits transportieren kann.',
+    },
+    // Archive verstecken den Inhalt vor dem Virenscanner.
+    archiv: {
+      schwere: 'mittel',
+      gewicht: 15,
+      endungen: ['zip', 'rar', '7z', 'gz', 'tgz', 'bz2', 'xz', 'tar', 'z'],
+      hinweis: 'Archive verbergen ihren Inhalt vor der Vorschau und teilweise vor dem Virenscanner.',
+    },
+    // Unauffällig, aber als Träger für Links und QR-Codes beliebt.
+    dokument: {
+      schwere: 'niedrig',
+      gewicht: 5,
+      endungen: ['pdf', 'docx', 'xlsx', 'pptx', 'odt', 'ods'],
+      hinweis: 'Unauffälliges Format, kann aber Links oder QR-Codes zu einer Phishing-Seite enthalten.',
+    },
+  };
+  
+  /** Signalwörter im Text. Jede Gruppe wird einmal gewertet, nicht pro Treffer. */
+  const CONTENT_SIGNALS = [
+    {
+      id: 'zeitdruck',
+      titel: 'Künstlicher Zeitdruck',
+      schwere: 'mittel',
+      gewicht: 16,
+      erklaerung: 'Druck ist das wichtigste Werkzeug beim Phishing: Wer sich hetzen lässt, prüft nicht nach.',
+      rat: 'Kein seriöses Unternehmen setzt dir eine 24-Stunden-Frist per Mail. Genau das ist dein Signal, langsamer zu werden.',
+      muster: [
+        /\bdringend\b/i, /\bsofort(ig|ige[nmrs]?)?\b/i, /\bumgehend\b/i, /\bunverz(?:u|ü|ue)glich\b/i,
+        /innerhalb von (?:24|48|72) stunden/i, /innerhalb der n(?:a|ä|ae)chsten \d+ (?:stunden|minuten|tage)/i,
+        /letzte (?:mahnung|warnung|erinnerung|aufforderung|chance)/i,
+        /frist(?: l(?:a|ä|ae)uft| endet| abgelaufen)/i, /nur noch (?:heute|bis)/i,
+        /\bzeitnah\b/i, /handeln sie jetzt/i, /\burgent\b/i, /\bimmediately\b/i,
+        /within (?:24|48|72) hours/i, /act now/i, /final (?:notice|warning|reminder)/i,
+        /expires? (?:today|soon|in \d+)/i,
+      ],
+    },
+    {
+      id: 'drohung',
+      titel: 'Drohung mit Sperrung, Kosten oder Rechtsfolgen',
+      schwere: 'hoch',
+      gewicht: 22,
+      erklaerung: 'Angst schaltet das kritische Denken aus. Sperrungen und Rechtsfolgen werden nie zuerst per Mail angekündigt.',
+      rat: 'Wenn wirklich etwas an deinem Konto hängt, siehst du das nach eigenständigem Login auf der echten Seite - oder du bekommst Post.',
+      muster: [
+        /\bgesperrt\b/i, /\bsperrung\b/i, /\bgel(?:o|ö|oe)scht\b/i, /\bl(?:o|ö|oe)schung\b/i,
+        /\bdeaktiviert\b/i, /\bstillgelegt\b/i, /\beingeschr(?:a|ä|ae)nkt\b/i,
+        /konto(?:schlie(?:s|ß|ss)ung|aufl(?:o|ö|oe)sung|sperre)/i,
+        /(?:ihr|dein) (?:konto|zugang|account|profil) (?:wurde|wird|ist) (?:vor(?:u|ü|ue)bergehend )?(?:gesperrt|deaktiviert|eingeschr(?:a|ä|ae)nkt|geschlossen|gel(?:o|ö|oe)scht)/i, /\binkasso\b/i, /\bmahnverfahren\b/i,
+        /rechtliche schritte/i, /\bstrafverfahren\b/i, /\bpf(?:a|ä|ae)ndung\b/i,
+        /\bs(?:a|ä|ae)umnisgeb(?:u|ü|ue)hr/i, /geb(?:u|ü|ue)hren? (?:von|in h(?:o|ö|oe)he)/i,
+        /\bsuspend(?:ed|ing)?\b/i, /\bterminated?\b/i, /permanently (?:closed|deleted)/i,
+        /legal action/i, /account (?:locked|restricted|on hold)/i,
+      ],
+    },
+    {
+      id: 'zugangsdaten',
+      titel: 'Aufforderung, Zugangsdaten oder TAN preiszugeben',
+      schwere: 'kritisch',
+      gewicht: 34,
+      erklaerung: 'Keine Bank, kein Zahlungsdienst und keine Behörde fragt per Mail nach Passwort, PIN oder TAN. Nicht einmal ausnahmsweise.',
+      rat: 'Diese Regel hat keine Ausnahme. Wer per Mail oder Telefon nach TAN, PIN oder Passwort fragt, ist ein Betrüger - immer.',
+      muster: [
+        /\b(?:i|m|photo|push|chip|smart|q[rR])?tan\b/i, /\bpin\b(?!\s*code\s*der\s*sendung)/i,
+        /\bpasswort\b/i, /\bkennwort\b/i, /\bzugangsdaten\b/i, /\blogin[- ]?daten\b/i,
+        /\bverifizier(?:en|ung|ieren)/i, /\bidentit(?:a|ä|ae)t (?:best(?:a|ä|ae)tigen|nachweisen|verifizieren)/i,
+        /daten (?:best(?:a|ä|ae)tigen|aktualisieren|abgleichen|best(?:a|ä|ae)tigung)/i,
+        /(?:best(?:a|ä|ae)tigen|aktualisieren|verifizieren|best(?:a|ä|ae)tige|hinterlege) sie (?:bitte )?(?:ihre|ihr|deine|dein)[\w ]{0,25}(?:daten|konto|angaben|identit(?:a|ä|ae)t|adresse)/i,
+        /(?:ihre|deine) (?:pers(?:o|ö|oe)nlichen |vollst(?:a|ä|ae)ndigen )?(?:konto|zugangs|bank|kunden)?daten (?:erneut )?(?:ein(?:zu)?geben|(?:zu )?best(?:a|ä|ae)tigen|(?:zu )?hinterlegen)/i,
+        /konto (?:reaktivieren|freischalten|entsperren|best(?:a|ä|ae)tigen)/i,
+        /\blegitimation(?:sverfahren)?\b/i, /\blegitimieren\b/i, /\bre-?aktivierung\b/i,
+        /verify your (?:account|identity|details)/i, /confirm your (?:password|account|identity)/i,
+        /update your (?:payment|billing|account) (?:details|information)/i,
+        /\bsecurity code\b/i, /\bone[- ]time (?:code|password)\b/i,
+      ],
+    },
+    {
+      id: 'kontowechsel',
+      titel: 'Geänderte Bankverbindung',
+      schwere: 'kritisch',
+      gewicht: 36,
+      erklaerung: 'Der Klassiker beim Rechnungsbetrug: Eine echte Rechnung wird abgefangen und mit neuer IBAN weitergeleitet.',
+      rat: 'Eine geänderte Bankverbindung immer per Telefon bestätigen lassen - unter der Nummer aus deinen alten Unterlagen, nie unter der aus der Mail.',
+      muster: [
+        /neue (?:bankverbindung|kontoverbindung|iban|kontonummer)/i,
+        /(?:bankverbindung|kontoverbindung|iban) (?:hat sich )?ge(?:a|ä|ae)ndert/i,
+        /ge(?:a|ä|ae)nderte (?:bankverbindung|kontodaten|iban)/i,
+        /bitte (?:ab sofort |k(?:u|ü|ue)nftig )?auf (?:das |unser )?(?:neue|folgende)s? konto/i,
+        /(?:bank|account) details (?:have )?changed/i, /updated? (?:our )?bank account/i,
+      ],
+    },
+    {
+      id: 'zahlung',
+      titel: 'Zahlungsaufforderung oder unübliches Zahlungsmittel',
+      schwere: 'hoch',
+      gewicht: 24,
+      erklaerung: 'Gutscheinkarten und Krypto sind für Betrüger attraktiv, weil die Zahlung nicht zurückgeholt werden kann.',
+      rat: 'Niemand, der es ehrlich meint, lässt sich mit Guthabenkarten oder Bitcoin bezahlen. Das ist praktisch immer Betrug.',
+      muster: [
+        /\bgutschein(?:karte|code)?\b/i, /\bguthabenkarte\b/i, /google[- ]play[- ]?(?:karte|code)/i,
+        /\bsteam[- ]?(?:karte|guthaben)/i, /\bpaysafecard\b/i, /\bamazon[- ]gutschein/i,
+        /\bbitcoin\b/i, /\bbtc\b/i, /\bethereum\b/i, /\bkrypto(?:w(?:a|ä|ae)hrung)?\b/i, /\bwallet\b/i,
+        /\bwestern union\b/i, /\bmoneygram\b/i, /\bvorkasse\b/i, /\banzahlung\b/i,
+        /(?:betrag|summe) von \d+[.,]?\d*\s*(?:eur|euro|€)/i,
+        /gift card/i, /wire transfer/i,
+      ],
+    },
+    {
+      id: 'unpersönlich',
+      titel: 'Unpersönliche Anrede',
+      schwere: 'mittel',
+      gewicht: 13,
+      erklaerung: 'Wer wirklich Kunde bei dir ist, kennt deinen Namen. Massenmails kennen ihn nicht.',
+      rat: 'Eine fehlende namentliche Anrede allein beweist nichts - viele echte Newsletter sind auch unpersönlich. Zusammen mit anderen Signalen wiegt sie schwer.',
+      muster: [
+        /sehr geehrter? (?:kunde|kundin|nutzer|benutzer|kontoinhaber|herr\/frau|damen und herren)/i,
+        /liebe[rs]? (?:kunde|kundin|nutzer|benutzer|mitglied)\b/i,
+        /hallo (?:kunde|nutzer|lieber kunde)/i,
+        /dear (?:customer|user|client|member|sir\/madam|account holder)/i,
+        /\bvaluated? customer\b/i,
+      ],
+    },
+    {
+      id: 'behörde',
+      titel: 'Auftreten als Behörde oder Strafverfolgung',
+      schwere: 'hoch',
+      gewicht: 26,
+      erklaerung: 'Behörden stellen Forderungen und Verfahren nicht per E-Mail zu, schon gar nicht mit Zahlungslink.',
+      rat: 'Behördliche Bescheide kommen per Post. Im Zweifel bei der Behörde anrufen - Nummer selbst heraussuchen.',
+      muster: [
+        /bundeskriminalamt/i, /\bbka\b/i, /\beuropol\b/i, /\binterpol\b/i,
+        /staatsanwaltschaft/i, /\bpolizeipr(?:a|ä|ae)sidium\b/i, /\bermittlungsverfahren\b/i,
+        /\bfinanzamt\b/i, /\belster\b/i, /\bzollamt\b/i, /\bbundesnetzagentur\b/i,
+        /\bgerichtsvollzieher\b/i, /\bamtsgericht\b/i,
+      ],
+    },
+    {
+      id: 'gewinn',
+      titel: 'Gewinn-, Erbschafts- oder Rückzahlungsversprechen',
+      schwere: 'hoch',
+      gewicht: 24,
+      erklaerung: 'Unerwartetes Geld ist der älteste Köder überhaupt.',
+      rat: 'Du kannst nichts gewinnen, wo du nicht teilgenommen hast, und niemand vererbt dir etwas per E-Mail.',
+      muster: [
+        /sie haben (?:gewonnen|einen? .{0,20}gewinn)/i, /\bgewinnspiel\b/i, /\blotterie\b/i,
+        /\berbschaft\b/i, /\berbe\b/i, /\bmillionen\b/i, /\bunerwartete[rn]? geldeingang/i,
+        /(?:steuer|geb(?:u|ü|ue)hren|betrag)r(?:u|ü|ue)ckerstattung/i, /r(?:u|ü|ue)ckerstattung (?:von|in h(?:o|ö|oe)he)/i,
+        /you have won/i, /\blottery\b/i, /\binheritance\b/i, /\bbeneficiary\b/i,
+        /\btax refund\b/i, /unclaimed funds/i,
+      ],
+    },
+    {
+      id: 'sextortion',
+      titel: 'Erpressung mit angeblichem Material',
+      schwere: 'hoch',
+      gewicht: 26,
+      erklaerung: 'Reine Bluff-Masche. Das genannte Passwort stammt aus einem alten, öffentlichen Datenleck - nicht aus einem Hack deines Geräts.',
+      rat: 'Nicht zahlen, nicht antworten, löschen. Aber: das genannte Passwort überall ändern, wo du es noch benutzt.',
+      muster: [
+        /\bwebcam\b/i, /ihre? kamera/i, /kompromittierend(?:es)? material/i,
+        /\bintime[ns]? (?:aufnahmen|videos?|bilder)/i, /pornoseite/i, /\berwachsenenseite/i,
+        /ich habe (?:ihr|dein) passwort/i, /ihr ger(?:a|ä|ae)t (?:wurde )?(?:gehackt|infiziert)/i,
+        /\btrojaner installiert/i, /i have (?:your|recorded)/i, /\bsextortion\b/i,
+      ],
+    },
+    {
+      id: 'chefmasche',
+      titel: 'Chefmasche: Vertraulichkeit und Alleingang gefordert',
+      schwere: 'kritisch',
+      gewicht: 32,
+      erklaerung: 'Beim CEO-Fraud gibt sich jemand als Vorgesetzter aus und verlangt eine schnelle, geheime Überweisung.',
+      rat: 'Genau die Bitte, niemanden einzuweihen, ist das Erkennungszeichen. Sprich immer mit einem Menschen - persönlich oder unter bekannter Nummer.',
+      muster: [
+        /(?:streng )?vertraulich behandeln/i, /nicht mit (?:kollegen|dritten) (?:besprechen|teilen)/i,
+        /niemandem (?:davon )?erz(?:a|ä|ae)hlen/i, /bin (?:gerade )?in (?:einem|einer) (?:meeting|besprechung|konferenz)/i,
+        /nur per (?:mail|e-?mail) erreichbar/i, /kannst du das schnell/i,
+        /keep this (?:confidential|between us)/i, /i am in a meeting/i,
+      ],
+    },
+    {
+      id: 'anhanglockung',
+      titel: 'Aufforderung, den Anhang zu öffnen',
+      schwere: 'mittel',
+      gewicht: 12,
+      erklaerung: 'Der Text soll dich dazu bringen, den Anhang unbesehen zu öffnen.',
+      rat: 'Anhänge nur öffnen, wenn du sie erwartest und den Absender über einen zweiten Weg bestätigt hast.',
+      muster: [
+        /(?:siehe|im|beiliegende[rn]?|anbei|beigef(?:u|ü|ue)gte[rn]?) anhang/i,
+        /anhang (?:(?:o|ö|oe)ffnen|pr(?:u|ü|ue)fen|ansehen)/i, /dokument im anhang/i,
+        /rechnung (?:im|als) anhang/i, /(?:see|open) (?:the )?attach(?:ed|ment)/i,
+      ],
+    },
+    {
+      id: 'qrcode',
+      titel: 'QR-Code statt Link (Quishing)',
+      schwere: 'hoch',
+      gewicht: 22,
+      erklaerung: 'Ein QR-Code umgeht jeden Link-Filter und verlagert den Klick auf dein Handy, wo die Adresse schlechter sichtbar ist.',
+      rat: 'QR-Codes aus E-Mails grundsätzlich nicht scannen. Die Zieladresse siehst du dabei erst, wenn es zu spät ist.',
+      muster: [
+        /\bqr[- ]?code\b/i, /code (?:mit dem handy |mit ihrem smartphone )?(?:scannen|einscannen)/i,
+        /scan(?:nen sie)? (?:den|diesen) code/i, /scan the (?:qr )?code/i,
+      ],
+    },
+  ];
+  
+  /** Homoglyphen: optisch ähnliche Zeichen aus anderen Schriftsystemen. */
+  const HOMOGLYPHS = {
+    'а': 'a', 'е': 'e', 'о': 'o', 'р': 'p', 'с': 'c', 'х': 'x', 'у': 'y',
+    'і': 'i', 'ѕ': 's', 'ԁ': 'd', 'һ': 'h', 'ј': 'j', 'ӏ': 'l', 'ԛ': 'q',
+    'ν': 'v', 'ο': 'o', 'ρ': 'p', 'α': 'a', 'ε': 'e', 'ι': 'i', 'κ': 'k',
+    'τ': 't', 'υ': 'u', 'χ': 'x', 'һ': 'h',
+  };
+  return { IMPERSONATED_BRANDS, FREEMAIL_DOMAINS, DISPOSABLE_DOMAINS, URL_SHORTENERS, RISKY_TLDS, EXTENSION_RISK, CONTENT_SIGNALS, HOMOGLYPHS };
+})();
+
+// ----- src/parse-eml.js -----
+const __M_parse_eml_js = (() => {
+  /**
+   * Minimaler, abhängigkeitsfreier Parser für RFC-5322/2045-Mails.
+   * Läuft unverändert in Node >= 18 und in jedem modernen Browser:
+   * benutzt nur atob, TextDecoder und TextEncoder.
+   *
+   * Der Parser ist bewusst fehlertolerant. Phishing-Mails sind oft kaputt
+   * aufgebaut - genau deshalb dürfen wir daran nicht scheitern.
+   */
+  
+  /** Mehrteilige Public Suffixes, die für den deutschsprachigen Raum relevant sind. */
+  const MULTI_PART_SUFFIXES = new Set([
+    'co.uk', 'org.uk', 'ac.uk', 'gov.uk', 'me.uk', 'net.uk', 'sch.uk',
+    'com.au', 'net.au', 'org.au', 'edu.au', 'gov.au',
+    'co.nz', 'com.br', 'com.mx', 'com.ar', 'com.tr', 'com.cn', 'com.hk',
+    'com.sg', 'com.tw', 'co.jp', 'ne.jp', 'or.jp', 'co.za', 'co.in',
+    'co.il', 'co.kr', 'com.pl', 'com.ua', 'com.ru', 'org.il',
+  ]);
+  
+  function bytesFromBase64(input) {
+    const clean = String(input).replace(/[^A-Za-z0-9+/=]/g, '');
+    const padded = clean.length % 4 === 0 ? clean : clean + '='.repeat(4 - (clean.length % 4));
+    const binary = atob(padded);
+    const out = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) out[i] = binary.charCodeAt(i);
+    return out;
+  }
+  
+  function decodeBytes(bytes, charset) {
+    const label = String(charset || 'utf-8').trim().replace(/^["']|["']$/g, '') || 'utf-8';
+    try {
+      return new TextDecoder(label, { fatal: false }).decode(bytes);
+    } catch {
+      try {
+        return new TextDecoder('utf-8', { fatal: false }).decode(bytes);
+      } catch {
+        return String.fromCharCode(...bytes);
+      }
+    }
+  }
+  
+  /** Quoted-Printable nach RFC 2045. */
+  function decodeQuotedPrintable(text, charset = 'utf-8') {
+    const joined = String(text).replace(/=\r?\n/g, '');
+    const bytes = [];
+    for (let i = 0; i < joined.length; i++) {
+      const ch = joined[i];
+      if (ch === '=' && /^[0-9A-Fa-f]{2}$/.test(joined.slice(i + 1, i + 3))) {
+        bytes.push(parseInt(joined.slice(i + 1, i + 3), 16));
+        i += 2;
+        continue;
+      }
+      const code = ch.charCodeAt(0);
+      if (code < 256) bytes.push(code);
+      else for (const b of new TextEncoder().encode(ch)) bytes.push(b);
+    }
+    return decodeBytes(new Uint8Array(bytes), charset);
+  }
+  
+  /** Encoded Words nach RFC 2047, z. B. =?UTF-8?B?SGFsbG8=?= */
+  function decodeEncodedWords(value) {
+    const str = String(value ?? '');
+    if (!str.includes('=?')) return str;
+    return str
+      // Whitespace zwischen zwei benachbarten Encoded Words fällt laut RFC weg.
+      .replace(/(=\?[^?]+\?[BbQq]\?[^?]*\?=)\s+(?==\?[^?]+\?[BbQq]\?)/g, '$1')
+      .replace(/=\?([^?]+)\?([BbQq])\?([^?]*)\?=/g, (match, charset, encoding, data) => {
+        try {
+          if (encoding.toUpperCase() === 'B') return decodeBytes(bytesFromBase64(data), charset);
+          return decodeQuotedPrintable(data.replace(/_/g, ' '), charset);
+        } catch {
+          return match;
+        }
+      });
+  }
+  
+  /** Trennt Header-Block und Body an der ersten Leerzeile. */
+  function splitHeadersAndBody(raw) {
+    const normalized = String(raw).replace(/\r\n/g, '\n').replace(/\r/g, '\n');
+    const index = normalized.indexOf('\n\n');
+    if (index === -1) return { headerBlock: normalized, body: '' };
+    return { headerBlock: normalized.slice(0, index), body: normalized.slice(index + 2) };
+  }
+  
+  /** Header entfalten und in eine geordnete Liste zerlegen. */
+  function parseHeaderBlock(headerBlock) {
+    const unfolded = String(headerBlock).replace(/\n[ \t]+/g, ' ');
+    const headers = [];
+    for (const line of unfolded.split('\n')) {
+      const match = line.match(/^([!-9;-~]+):[ \t]*(.*)$/);
+      if (!match) continue;
+      headers.push({
+        name: match[1],
+        key: match[1].toLowerCase(),
+        raw: match[2].trim(),
+        value: decodeEncodedWords(match[2].trim()),
+      });
+    }
+    return headers;
+  }
+  
+  /** Header mit Parametern zerlegen, z. B. Content-Type oder Content-Disposition. */
+  function parseParameterizedHeader(value) {
+    const result = { value: '', params: {} };
+    const str = String(value ?? '').trim();
+    if (!str) return result;
+  
+    const segments = [];
+    let current = '';
+    let inQuotes = false;
+    for (const ch of str) {
+      if (ch === '"') { inQuotes = !inQuotes; current += ch; continue; }
+      if (ch === ';' && !inQuotes) { segments.push(current); current = ''; continue; }
+      current += ch;
+    }
+    segments.push(current);
+  
+    result.value = segments.shift().trim().toLowerCase();
+  
+    const continuations = new Map();
+    for (const segment of segments) {
+      const match = segment.match(/^\s*([\w!#$%&'*+.^_`|~-]+?)(\*\d+)?(\*)?\s*=\s*([\s\S]*)$/);
+      if (!match) continue;
+      const [, name, index, extended, rawValue] = match;
+      let val = rawValue.trim().replace(/^"([\s\S]*)"$/, '$1');
+      if (extended) {
+        const ext = val.match(/^([\w-]*)'([\w-]*)'([\s\S]*)$/);
+        if (ext) {
+          try { val = decodeURIComponent(ext[3]); } catch { val = ext[3]; }
+        } else {
+          try { val = decodeURIComponent(val); } catch { /* Wert unverändert lassen */ }
+        }
+      }
+      const key = name.toLowerCase();
+      if (index) {
+        const bucket = continuations.get(key) || [];
+        bucket.push([parseInt(index.slice(1), 10), val]);
+        continuations.set(key, bucket);
+      } else {
+        result.params[key] = decodeEncodedWords(val);
+      }
+    }
+    for (const [key, parts] of continuations) {
+      parts.sort((a, b) => a[0] - b[0]);
+      result.params[key] = decodeEncodedWords(parts.map((p) => p[1]).join(''));
+    }
+    return result;
+  }
+  
+  /** Adressliste eines Headers zerlegen (From, To, Reply-To, ...). */
+  function parseAddressList(value) {
+    const str = String(value ?? '').trim();
+    if (!str) return [];
+  
+    const entries = [];
+    let current = '';
+    let inQuotes = false;
+    let inAngle = false;
+    for (const ch of str) {
+      if (ch === '"') { inQuotes = !inQuotes; current += ch; continue; }
+      if (ch === '<' && !inQuotes) inAngle = true;
+      if (ch === '>' && !inQuotes) inAngle = false;
+      if (ch === ',' && !inQuotes && !inAngle) { entries.push(current); current = ''; continue; }
+      current += ch;
+    }
+    entries.push(current);
+  
+    return entries
+      .map((entry) => entry.trim())
+      .filter(Boolean)
+      .map((entry) => {
+        const angle = entry.match(/<([^>]*)>/);
+        const address = (angle ? angle[1] : entry).trim().replace(/^mailto:/i, '');
+        let display = angle ? entry.slice(0, angle.index).trim() : '';
+        display = decodeEncodedWords(display).replace(/^"([\s\S]*)"$/, '$1').trim();
+        const at = address.lastIndexOf('@');
+        return {
+          raw: entry,
+          display,
+          address,
+          local: at === -1 ? address : address.slice(0, at),
+          domain: at === -1 ? '' : address.slice(at + 1).toLowerCase().replace(/[.>\s]+$/, ''),
+        };
+      });
+  }
+  
+  /** Registrierbare Domain ermitteln, z. B. mail.beispiel.co.uk -> beispiel.co.uk */
+  function registrableDomain(host) {
+    const clean = String(host || '').toLowerCase().trim().replace(/^\.+|\.+$/g, '');
+    if (!clean || !clean.includes('.')) return clean;
+    const labels = clean.split('.');
+    const lastTwo = labels.slice(-2).join('.');
+    if (MULTI_PART_SUFFIXES.has(lastTwo) && labels.length >= 3) return labels.slice(-3).join('.');
+    return lastTwo;
+  }
+  
+  function decodePartBody(body, encoding, charset) {
+    const cte = String(encoding || '7bit').trim().toLowerCase();
+    try {
+      if (cte === 'base64') return decodeBytes(bytesFromBase64(body), charset);
+      if (cte === 'quoted-printable') return decodeQuotedPrintable(body, charset);
+    } catch {
+      return body;
+    }
+    const label = String(charset || '').toLowerCase();
+    if (label && !/^(us-ascii|ascii|utf-?8)$/.test(label)) {
+      const bytes = new Uint8Array(body.length);
+      for (let i = 0; i < body.length; i++) bytes[i] = body.charCodeAt(i) & 0xff;
+      return decodeBytes(bytes, label);
+    }
+    return body;
+  }
+  
+  function splitMultipart(body, boundary) {
+    const delimiter = `--${boundary}`;
+    const chunks = [];
+    let current = null;
+    for (const line of String(body).split('\n')) {
+      const trimmed = line.replace(/[ \t\r]+$/, '');
+      if (trimmed === delimiter) {
+        if (current !== null) chunks.push(current.join('\n'));
+        current = [];
+        continue;
+      }
+      if (trimmed === `${delimiter}--`) {
+        if (current !== null) chunks.push(current.join('\n'));
+        current = null;
+        break;
+      }
+      if (current !== null) current.push(line);
+    }
+    if (current !== null) chunks.push(current.join('\n'));
+    return chunks;
+  }
+  
+  function estimateSize(body, encoding) {
+    const length = String(body).replace(/\s/g, '').length;
+    if (String(encoding).toLowerCase() === 'base64') return Math.floor((length * 3) / 4);
+    return String(body).length;
+  }
+  
+  function walkPart(headerBlock, body, collected, depth) {
+    const headers = parseHeaderBlock(headerBlock);
+    const get = (key) => (headers.find((h) => h.key === key) || {}).raw || '';
+  
+    const contentType = parseParameterizedHeader(get('content-type') || 'text/plain');
+    const disposition = parseParameterizedHeader(get('content-disposition'));
+    const encoding = get('content-transfer-encoding');
+    const filename = disposition.params.filename || contentType.params.name || '';
+  
+    if (contentType.value.startsWith('multipart/') && contentType.params.boundary && depth < 12) {
+      for (const chunk of splitMultipart(body, contentType.params.boundary)) {
+        const split = splitHeadersAndBody(chunk);
+        walkPart(split.headerBlock, split.body, collected, depth + 1);
+      }
+      return;
+    }
+  
+    const isText = contentType.value.startsWith('text/') || contentType.value === '';
+    const isAttachment = disposition.value === 'attachment' || (!!filename && !isText);
+  
+    if (isAttachment || filename) {
+      collected.attachments.push({
+        filename,
+        contentType: contentType.value || 'application/octet-stream',
+        encoding: String(encoding || '7bit').toLowerCase(),
+        size: estimateSize(body, encoding),
+        inline: disposition.value === 'inline',
+        contentId: (get('content-id') || '').replace(/^<|>$/g, ''),
+      });
+      return;
+    }
+  
+    const decoded = decodePartBody(body, encoding, contentType.params.charset);
+    if (contentType.value === 'text/html') collected.htmlParts.push(decoded);
+    else if (isText) collected.textParts.push(decoded);
+  }
+  
+  const KNOWN_HEADER_KEYS = new Set([
+    'from', 'to', 'cc', 'bcc', 'subject', 'date', 'sender', 'reply-to', 'received',
+    'message-id', 'return-path', 'mime-version', 'content-type', 'delivered-to',
+    'authentication-results', 'arc-authentication-results', 'dkim-signature',
+    'received-spf', 'x-mailer', 'user-agent', 'list-unsubscribe', 'in-reply-to',
+    'references', 'content-transfer-encoding', 'precedence', 'auto-submitted',
+    'x-originating-ip', 'x-spam-status', 'x-spam-score', 'x-priority', 'importance',
+    'organization', 'x-php-originating-script', 'x-sender', 'envelope-to',
+  ]);
+  
+  /**
+   * Hauptfunktion: rohe Mail (oder bloßer Text) in eine Struktur zerlegen.
+   * @param {string} raw
+   */
+  function parseEml(raw) {
+    const input = String(raw ?? '');
+    const { headerBlock, body } = splitHeadersAndBody(input);
+    const headers = parseHeaderBlock(headerBlock);
+  
+    // Heuristik: Sieht der Kopf wirklich nach Mail-Headern aus?
+    const knownCount = headers.filter((h) => KNOWN_HEADER_KEYS.has(h.key)).length;
+    const isEmail = knownCount >= 2 || headers.some((h) => h.key === 'from');
+  
+    const collected = { textParts: [], htmlParts: [], attachments: [] };
+    if (isEmail) {
+      walkPart(headerBlock, body, collected, 0);
+    } else {
+      // Reiner Text ohne Header: alles als Body behandeln.
+      if (/<[a-z][\s\S]*>/i.test(input)) collected.htmlParts.push(input);
+      else collected.textParts.push(input);
+    }
+  
+    const headerMap = new Map();
+    for (const header of headers) {
+      if (!headerMap.has(header.key)) headerMap.set(header.key, []);
+      headerMap.get(header.key).push(header);
+    }
+  
+    return {
+      isEmail,
+      raw: input,
+      headers,
+      headerMap,
+      text: collected.textParts.join('\n\n').trim(),
+      html: collected.htmlParts.join('\n').trim(),
+      attachments: collected.attachments,
+      /** Letzter (also der aussagekräftigste) Wert eines Headers. */
+      header(name) {
+        const list = headerMap.get(String(name).toLowerCase());
+        return list && list.length ? list[list.length - 1].value : '';
+      },
+      /** Alle Werte eines Headers in Reihenfolge des Auftretens. */
+      headerAll(name) {
+        const list = headerMap.get(String(name).toLowerCase()) || [];
+        return list.map((h) => h.value);
+      },
+    };
+  }
+  return { decodeQuotedPrintable, decodeEncodedWords, splitHeadersAndBody, parseHeaderBlock, parseParameterizedHeader, parseAddressList, registrableDomain, parseEml };
+})();
+
+// ----- src/utils.js -----
+const __M_utils_js = (() => {
+  const {HOMOGLYPHS} = __M_data_js;
+  const {registrableDomain} = __M_parse_eml_js;
+  
+  
+  /** Levenshtein-Distanz, begrenzt auf sinnvolle Längen. */
+  function levenshtein(a, b) {
+    const s = String(a);
+    const t = String(b);
+    if (s === t) return 0;
+    if (!s.length) return t.length;
+    if (!t.length) return s.length;
+    let prev = Array.from({ length: t.length + 1 }, (_, i) => i);
+    for (let i = 1; i <= s.length; i++) {
+      const curr = [i];
+      for (let j = 1; j <= t.length; j++) {
+        curr[j] = Math.min(
+          prev[j] + 1,
+          curr[j - 1] + 1,
+          prev[j - 1] + (s[i - 1] === t[j - 1] ? 0 : 1),
+        );
+      }
+      prev = curr;
+    }
+    return prev[t.length];
+  }
+  
+  /** Zeichen aus fremden Schriftsystemen auf ihr lateinisches Aussehen abbilden. */
+  function normalizeHomoglyphs(text) {
+    return String(text).replace(/./gu, (ch) => HOMOGLYPHS[ch] || ch);
+  }
+  
+  /** Findet Zeichen, die wie lateinische aussehen, aber keine sind. */
+  function findHomoglyphs(text) {
+    const found = [];
+    for (const ch of String(text)) {
+      if (HOMOGLYPHS[ch]) found.push(ch);
+    }
+    return [...new Set(found)];
+  }
+  
+  /**
+   * Tippfehler-Varianten einer Domain erkennen: paypaI.com, arnazon.de, g00gle.com.
+   * Normalisiert typische optische Verwechslungen und vergleicht dann.
+   */
+  function opticalNormalize(text) {
+    return normalizeHomoglyphs(String(text).toLowerCase())
+      .replace(/rn/g, 'm')
+      .replace(/vv/g, 'w')
+      .replace(/[0]/g, 'o')
+      .replace(/[1l|]/g, 'i')
+      .replace(/[5]/g, 's')
+      .replace(/[3]/g, 'e')
+      .replace(/[4]/g, 'a')
+      .replace(/[8]/g, 'b')
+      .replace(/[-_.]/g, '');
+  }
+  
+  /** Sichtbaren Text aus HTML gewinnen, ohne Skripte und Styles. */
+  function htmlToText(html) {
+    return String(html)
+      .replace(/<!--[\s\S]*?-->/g, ' ')
+      .replace(/<(script|style|head)[^>]*>[\s\S]*?<\/\1>/gi, ' ')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/(p|div|tr|li|h[1-6]|table)>/gi, '\n')
+      .replace(/<[^>]+>/g, ' ')
+      .replace(/&nbsp;/gi, ' ')
+      .replace(/&amp;/gi, '&')
+      .replace(/&lt;/gi, '<')
+      .replace(/&gt;/gi, '>')
+      .replace(/&quot;/gi, '"')
+      .replace(/&#(\d+);/g, (_, n) => String.fromCharCode(parseInt(n, 10)))
+      .replace(/&#x([0-9a-f]+);/gi, (_, n) => String.fromCharCode(parseInt(n, 16)))
+      .replace(/[ \t]+/g, ' ')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim();
+  }
+  
+  /** Ein Link mit allem, was die Regeln darüber wissen müssen. */
+  function makeLink(url, quelle, ankerText = '') {
+    const link = {
+      url: String(url).trim(),
+      quelle,
+      ankerText: String(ankerText).trim(),
+      schema: '',
+      host: '',
+      domain: '',
+      port: '',
+      pfad: '',
+      query: '',
+      gueltig: false,
+    };
+    const schemaMatch = link.url.match(/^([a-z][a-z0-9+.-]*):/i);
+    link.schema = schemaMatch ? schemaMatch[1].toLowerCase() : '';
+  
+    if (link.schema === 'data' || link.schema === 'javascript' || link.schema === 'vbscript') {
+      return link;
+    }
+    try {
+      const parsed = new URL(link.schema ? link.url : `http://${link.url}`);
+      link.schema = parsed.protocol.replace(':', '');
+      link.host = parsed.hostname.toLowerCase();
+      link.domain = registrableDomain(link.host);
+      link.port = parsed.port;
+      link.pfad = parsed.pathname;
+      link.query = parsed.search;
+      link.benutzerInfo = parsed.username || '';
+      link.gueltig = true;
+    } catch {
+      link.gueltig = false;
+    }
+    return link;
+  }
+  
+  const URL_IN_TEXT = /\b(?:(?:https?|ftp):\/\/|www\.)[^\s<>"'()\[\]{}]+[^\s<>"'()\[\]{}.,;:!?]/gi;
+  
+  /**
+   * Alle Links aus Text und HTML einsammeln - inklusive Ankertext,
+   * denn die Abweichung zwischen sichtbarem Text und Ziel ist das
+   * stärkste Einzelsignal überhaupt.
+   */
+  function extractLinks({ text = '', html = '' } = {}) {
+    const links = [];
+    const seen = new Set();
+  
+    const push = (url, quelle, anker) => {
+      const cleaned = String(url).trim().replace(/^[<(]+|[>)]+$/g, '');
+      if (!cleaned) return;
+      const key = `${quelle}|${cleaned}|${anker || ''}`;
+      if (seen.has(key)) return;
+      seen.add(key);
+      links.push(makeLink(cleaned, quelle, anker));
+    };
+  
+    // Anker aus dem HTML samt sichtbarem Text.
+    const anchorRe = /<a\b([^>]*)>([\s\S]*?)<\/a>/gi;
+    let match;
+    while ((match = anchorRe.exec(html)) !== null) {
+      const href = match[1].match(/\bhref\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/i);
+      if (!href) continue;
+      const target = (href[1] ?? href[2] ?? href[3] ?? '').replace(/&amp;/gi, '&');
+      push(target, 'anker', htmlToText(match[2]));
+    }
+  
+    // Weitere URL-tragende Attribute: Bilder, Frames, Formularziele.
+    const attrRe = /\b(?:src|action|background|formaction|data-url|data-href)\s*=\s*(?:"([^"]*)"|'([^']*)'|([^\s>]+))/gi;
+    while ((match = attrRe.exec(html)) !== null) {
+      const target = (match[1] ?? match[2] ?? match[3] ?? '').replace(/&amp;/gi, '&');
+      if (/^https?:\/\//i.test(target)) push(target, 'attribut', '');
+    }
+  
+    // Klartext-URLs aus beiden Körperteilen.
+    for (const [quelle, quelltext] of [['text', text], ['html-text', htmlToText(html)]]) {
+      const matches = String(quelltext).match(URL_IN_TEXT) || [];
+      for (const url of matches) push(url, quelle, url);
+    }
+  
+    return links;
+  }
+  
+  /** Nachvollziehbare Kurzfassung eines Beweises für die Ausgabe. */
+  function kuerzen(text, laenge = 160) {
+    const clean = String(text ?? '').replace(/\s+/g, ' ').trim();
+    return clean.length <= laenge ? clean : `${clean.slice(0, laenge - 1)}…`;
+  }
+  
+  /** Ist der Host eine rohe IP-Adresse? */
+  function istIpAdresse(host) {
+    const h = String(host || '');
+    if (/^\d{1,3}(\.\d{1,3}){3}$/.test(h)) return h.split('.').every((o) => Number(o) <= 255);
+    if (/^\[?[0-9a-f:]+\]?$/i.test(h) && h.includes(':')) return true;
+    // Dezimal- oder Hex-Notation, z. B. http://3232235777/
+    if (/^\d{8,12}$/.test(h)) return true;
+    if (/^0x[0-9a-f]+$/i.test(h)) return true;
+    return false;
+  }
+  
+  /**
+   * Steckt ein Markenname als eigenständiges Wort in einem Text oder Hostnamen?
+   *
+   * Bewusst NICHT als einfacher Teilstring-Vergleich: sonst findet "ing" sich in
+   * "Holding", "o2" in "Duo24" und jede Firma mit solchen Silben im Namen wird
+   * fälschlich als Markenmissbrauch gemeldet. Verglichen werden einzelne Wörter
+   * bzw. Namensbestandteile, zusätzlich benachbarte Paare (für "Deutsche Bank").
+   */
+  function enthaeltMarkenname(text, token) {
+    const tokenNorm = opticalNormalize(token);
+    if (!tokenNorm) return false;
+  
+    const teile = String(text)
+      .split(/[^\p{L}\p{N}]+/u)
+      .filter(Boolean)
+      .map((t) => opticalNormalize(t))
+      .filter(Boolean);
+    if (!teile.length) return false;
+  
+    if (teile.includes(tokenNorm)) return true;
+  
+    // Zusammengesetzte Marken wie "deutsche-bank" über zwei Wörter hinweg.
+    for (let i = 0; i < teile.length - 1; i++) {
+      if (teile[i] + teile[i + 1] === tokenNorm) return true;
+    }
+  
+    // Längere Marken dürfen auch in einem Wort stecken ("paypalsicherheit"),
+    // kurze nicht - sonst fängt man wieder jede Zufallssilbe ein.
+    if (tokenNorm.length >= 5 && teile.some((t) => t.includes(tokenNorm))) return true;
+  
+    return false;
+  }
+  return { levenshtein, normalizeHomoglyphs, findHomoglyphs, opticalNormalize, htmlToText, extractLinks, kuerzen, istIpAdresse, enthaeltMarkenname };
+})();
+
+// ----- src/rules/header.js -----
+const __M_rules_header_js = (() => {
+  const {parseAddressList, registrableDomain} = __M_parse_eml_js;
+  const {FREEMAIL_DOMAINS, DISPOSABLE_DOMAINS, IMPERSONATED_BRANDS, RISKY_TLDS} = __M_data_js;
+  const {levenshtein, opticalNormalize, findHomoglyphs, enthaeltMarkenname, kuerzen} = __M_utils_js;
+  
+  
+  
+  const KAT = 'Absender';
+  
+  function befund(id, schwere, gewicht, titel, erklaerung, beweis, rat, kategorie = KAT) {
+    return { id, kategorie, schwere, gewicht, titel, erklaerung, beweis: [].concat(beweis).filter(Boolean), rat };
+  }
+  
+  /** Authentication-Results auswerten: SPF, DKIM und DMARC. */
+  function pruefeAuthentifizierung(mail, befunde) {
+    const zeilen = [
+      ...mail.headerAll('authentication-results'),
+      ...mail.headerAll('arc-authentication-results'),
+      ...mail.headerAll('received-spf'),
+    ];
+  
+    if (!zeilen.length) {
+      befunde.push(befund(
+        'auth-fehlt', 'info', 0,
+        'Keine Prüfergebnisse zu SPF, DKIM und DMARC vorhanden',
+        'Diese drei Verfahren prüfen, ob der Absenderserver überhaupt für die Absenderdomain verschicken darf. Ohne den Original-Header lassen sie sich nicht auswerten.',
+        [],
+        'Öffne die Mail im Postfach und lass dir den Originaltext bzw. den vollständigen Kopf anzeigen. Genau darin steht die Zeile "Authentication-Results".',
+        'Technik',
+      ));
+      return;
+    }
+  
+    const gesamt = zeilen.join('\n');
+    const lese = (name) => {
+      const treffer = gesamt.match(new RegExp(`\\b${name}\\s*=\\s*([a-z]+)`, 'i'));
+      return treffer ? treffer[1].toLowerCase() : '';
+    };
+    const spf = lese('spf');
+    const dkim = lese('dkim');
+    const dmarc = lese('dmarc');
+  
+    const bewertung = {
+      fail: { schwere: 'kritisch', gewicht: 30 },
+      softfail: { schwere: 'mittel', gewicht: 14 },
+      permerror: { schwere: 'mittel', gewicht: 10 },
+      temperror: { schwere: 'niedrig', gewicht: 4 },
+      none: { schwere: 'niedrig', gewicht: 6 },
+      neutral: { schwere: 'niedrig', gewicht: 5 },
+    };
+  
+    const erklaerungen = {
+      spf: 'SPF prüft, ob der versendende Server laut Eintrag der Absenderdomain überhaupt für sie verschicken darf.',
+      dkim: 'DKIM prüft eine kryptografische Signatur des Absenders. Schlägt sie fehl, wurde die Mail verändert oder gar nicht von der Domain signiert.',
+      dmarc: 'DMARC verbindet SPF und DKIM mit der sichtbaren Absenderadresse. Ein Fehlschlag heißt: Die angezeigte Adresse ist sehr wahrscheinlich gefälscht.',
+    };
+  
+    for (const [name, ergebnis] of [['spf', spf], ['dkim', dkim], ['dmarc', dmarc]]) {
+      if (!ergebnis) continue;
+      if (ergebnis === 'pass') continue;
+      const stufe = bewertung[ergebnis] || { schwere: 'mittel', gewicht: 10 };
+      const gewicht = name === 'dmarc' && ergebnis === 'fail' ? 40 : stufe.gewicht;
+      befunde.push(befund(
+        `auth-${name}`, name === 'dmarc' && ergebnis === 'fail' ? 'kritisch' : stufe.schwere, gewicht,
+        `${name.toUpperCase()}-Prüfung: ${ergebnis}`,
+        erklaerungen[name],
+        `Gefunden: ${name}=${ergebnis}`,
+        ergebnis === 'fail'
+          ? 'Die Absenderadresse ist mit hoher Wahrscheinlichkeit gefälscht. Behandle die Mail als Fälschung.'
+          : 'Kein Beweis, aber ein deutliches Warnzeichen. Prüfe die übrigen Punkte besonders genau.',
+        'Technik',
+      ));
+    }
+  
+    if (spf === 'pass' && dkim === 'pass' && (dmarc === 'pass' || !dmarc)) {
+      befunde.push(befund(
+        'auth-ok', 'gut', 0,
+        'SPF und DKIM bestanden',
+        'Die Mail kommt technisch tatsächlich von der angegebenen Domain.',
+        `spf=${spf}, dkim=${dkim}${dmarc ? `, dmarc=${dmarc}` : ''}`,
+        'Wichtig: Das beweist nur die Herkunft, nicht die Ehrlichkeit. Betrüger registrieren eigene Domains und richten SPF und DKIM korrekt ein. Prüfe trotzdem, wem die Domain gehört.',
+        'Technik',
+      ));
+    }
+  }
+  
+  /** Angezeigter Name gegen tatsächliche Adresse. */
+  function pruefeAnzeigename(from, befunde, mail) {
+    if (!from) return;
+    const anzeige = from.display;
+    if (!anzeige) return;
+  
+    // Fall 1: Im Anzeigenamen steht eine komplette, andere Mailadresse.
+    const adresseImNamen = anzeige.match(/[\w.+-]+@([\w-]+(?:\.[\w-]+)+)/);
+    if (adresseImNamen) {
+      const gezeigteDomain = registrableDomain(adresseImNamen[1]);
+      if (gezeigteDomain && gezeigteDomain !== registrableDomain(from.domain)) {
+        befunde.push(befund(
+          'anzeigename-adresse', 'kritisch', 35,
+          'Der angezeigte Name täuscht eine andere Absenderadresse vor',
+          'Viele Programme zeigen nur den Namen an. Dahinter darf beliebiger Text stehen - auch eine fremde Mailadresse.',
+          [`Angezeigt: ${kuerzen(anzeige)}`, `Tatsächlich: ${from.address}`],
+          'Lass dir in deinem Mailprogramm immer die vollständige Adresse anzeigen, nicht nur den Namen.',
+        ));
+        return;
+      }
+    }
+  
+    // Fall 2: Im Anzeigenamen steckt ein Markenname, die Domain passt aber nicht dazu.
+    const absenderDomain = registrableDomain(from.domain);
+    for (const marke of IMPERSONATED_BRANDS) {
+      if (!enthaeltMarkenname(anzeige, marke.token)) continue;
+      // Nur die registrierbare Domain zählt. Würde hier die volle Adresse
+      // geprüft, würde ausgerechnet das Tarnmuster ing-sicherheit.example.top
+      // als legitim durchgehen.
+      const passt = marke.domains.some((d) => absenderDomain === d || absenderDomain.endsWith(`.${d}`))
+        || enthaeltMarkenname(absenderDomain, marke.token);
+      if (passt) continue;
+      befunde.push(befund(
+        'anzeigename-marke', 'kritisch', 32,
+        `Auftreten als ${marke.label}, aber fremde Absenderdomain`,
+        'Der Name im Absenderfeld ist frei wählbar. Entscheidend ist allein die Domain hinter dem @-Zeichen.',
+        [`Angezeigt: ${kuerzen(anzeige)}`, `Domain: ${from.domain || '(keine)'}`, `Erwartet wäre z. B.: ${marke.domains.join(', ')}`],
+        `Echte Post von ${marke.label} kommt von ${marke.domains[0]}. Rufe die Seite selbst im Browser auf, statt auf einen Link zu klicken.`,
+      ));
+      return;
+    }
+  
+    // Fall 3: Der Anzeigename behauptet eine Firma, verschickt wird über Freemail.
+    const wirktGeschaeftlich = /\b(gmbh|ag|kg|ohg|e\.?v\.?|ltd|inc|service|support|kundenservice|abteilung|team|buchhaltung|rechnungswesen|holding|bank|versicherung|amt|beh[oö]rde)\b/i.test(anzeige)
+      || /\b(gmbh|ag|kg|holding)\b/i.test(mail.header('subject'));
+    if (wirktGeschaeftlich && FREEMAIL_DOMAINS.has(from.domain)) {
+      befunde.push(befund(
+        'freemail-firma', 'hoch', 26,
+        'Angeblich ein Unternehmen, verschickt aber über eine Freemail-Adresse',
+        'Firmen und Behörden verschicken Geschäftspost über ihre eigene Domain, nicht über GMX, Gmail oder Web.de.',
+        [`Angezeigt: ${kuerzen(anzeige)}`, `Freemail-Domain: ${from.domain}`],
+        'Suche die echte Firmenadresse selbst heraus und frage dort nach, ob die Mail von ihnen stammt.',
+      ));
+    }
+  }
+  
+  /** Absenderdomain auf Verwechslungstricks prüfen. */
+  function pruefeAbsenderdomain(from, befunde) {
+    if (!from || !from.domain) return;
+    const domain = from.domain;
+    const registrierbar = registrableDomain(domain);
+  
+    if (domain.includes('xn--')) {
+      befunde.push(befund(
+        'punycode-absender', 'kritisch', 35,
+        'Absenderdomain enthält eine kodierte Sonderzeichen-Domain (Punycode)',
+        'Mit Sonderzeichen lässt sich eine Domain bauen, die im Postfach exakt aussieht wie das Original.',
+        `Domain: ${domain}`,
+        'Solche Domains sind in seriöser Geschäftspost praktisch nie nötig. Behandle die Mail als Fälschung.',
+      ));
+    }
+  
+    const homoglyphen = findHomoglyphs(domain);
+    if (homoglyphen.length) {
+      befunde.push(befund(
+        'homoglyphen-absender', 'kritisch', 35,
+        'Absenderdomain enthält Zeichen aus einem fremden Schriftsystem',
+        'Kyrillische und griechische Buchstaben sehen aus wie lateinische, führen aber zu einer völlig anderen Domain.',
+        [`Domain: ${domain}`, `Verdächtige Zeichen: ${homoglyphen.join(' ')}`],
+        'Das ist eine gezielte Täuschung. Es gibt keinen harmlosen Grund dafür.',
+      ));
+    }
+  
+    const domainNorm = opticalNormalize(registrierbar);
+    for (const marke of IMPERSONATED_BRANDS) {
+      for (const echt of marke.domains) {
+        const echtNorm = opticalNormalize(echt);
+        if (domainNorm === echtNorm && registrierbar !== echt) {
+          befunde.push(befund(
+            'tippfehler-domain', 'kritisch', 36,
+            `Absenderdomain ist optisch von ${echt} kaum zu unterscheiden`,
+            'Ausgetauschte Zeichen wie 0 statt o, I statt l oder rn statt m fallen beim Lesen nicht auf.',
+            [`Absender: ${registrierbar}`, `Verwechselbar mit: ${echt}`],
+            `Die echte Domain lautet ${echt}. Vergleiche Zeichen für Zeichen.`,
+          ));
+          return;
+        }
+        const abstand = levenshtein(registrierbar, echt);
+        if (abstand > 0 && abstand <= 2 && echt.length >= 7) {
+          befunde.push(befund(
+            'ähnliche-domain', 'hoch', 28,
+            `Absenderdomain ähnelt ${echt} bis auf wenige Zeichen`,
+            'Betrüger registrieren Domains, die sich nur minimal vom Original unterscheiden.',
+            [`Absender: ${registrierbar}`, `Original: ${echt}`, `Unterschied: ${abstand} Zeichen`],
+            `Prüfe genau. Die echte Domain lautet ${echt}.`,
+          ));
+          return;
+        }
+        // Markenname steckt in der Domain, ist aber nicht die registrierte Domain.
+        if (marke.token.length >= 4 && enthaeltMarkenname(domain, marke.token)
+            && !enthaeltMarkenname(registrierbar, marke.token)) {
+          befunde.push(befund(
+            'marke-in-subdomain', 'kritisch', 34,
+            `"${marke.label}" steht nur in der Subdomain, nicht in der echten Domain`,
+            'Entscheidend sind die letzten beiden Bestandteile vor dem ersten Schrägstrich. Alles davor kann sich jeder frei ausdenken.',
+            [`Vollständig: ${domain}`, `Tatsächliche Domain: ${registrierbar}`],
+            `Lies Domains von rechts nach links. Hier gehört die Adresse zu ${registrierbar}, nicht zu ${marke.label}.`,
+          ));
+          return;
+        }
+      }
+    }
+  
+    const tld = registrierbar.split('.').pop();
+    if (RISKY_TLDS.has(tld)) {
+      befunde.push(befund(
+        'riskante-tld', 'mittel', 14,
+        `Absenderdomain endet auf .${tld}`,
+        'Diese Endungen sind billig oder anonym zu bekommen und deshalb bei Betrügern beliebt.',
+        `Domain: ${registrierbar}`,
+        'Allein kein Beweis - aber ein Grund, genauer hinzusehen.',
+      ));
+    }
+  
+    if (DISPOSABLE_DOMAINS.has(registrierbar)) {
+      befunde.push(befund(
+        'wegwerfadresse', 'hoch', 26,
+        'Absender nutzt eine Wegwerf-Mailadresse',
+        'Wegwerfadressen existieren nur wenige Minuten und lassen sich niemandem zuordnen.',
+        `Domain: ${registrierbar}`,
+        'Für echte Geschäftspost völlig unüblich.',
+      ));
+    }
+  }
+  
+  /** Reply-To, Return-Path und Sender gegen den From-Header. */
+  function pruefeAntwortpfade(mail, from, befunde) {
+    if (!from || !from.domain) return;
+    const fromDomain = registrableDomain(from.domain);
+  
+    const replyTo = parseAddressList(mail.header('reply-to'))[0];
+    if (replyTo && replyTo.domain && registrableDomain(replyTo.domain) !== fromDomain) {
+      befunde.push(befund(
+        'reply-to-abweichung', 'hoch', 24,
+        'Antworten gehen an eine ganz andere Domain',
+        'Die Mail sieht aus wie von A, deine Antwort landet aber bei B. Das ist ein Kernmerkmal von Rechnungs- und Chefbetrug.',
+        [`Absender: ${from.address}`, `Antwort geht an: ${replyTo.address}`],
+        'Wenn du antwortest, tippe die Adresse selbst aus deinem Adressbuch ein - benutze nicht die Antworten-Schaltfläche.',
+      ));
+    }
+  
+    const returnPath = parseAddressList(mail.header('return-path'))[0];
+    if (returnPath && returnPath.domain && registrableDomain(returnPath.domain) !== fromDomain) {
+      befunde.push(befund(
+        'return-path-abweichung', 'mittel', 12,
+        'Der technische Rückweg zeigt auf eine andere Domain',
+        'Bei Newslettern über Dienstleister ist das normal. Bei angeblich persönlicher Geschäftspost nicht.',
+        [`Absender: ${from.address}`, `Return-Path: ${returnPath.address}`],
+        'Im Zusammenhang mit anderen Auffälligkeiten ein ernstes Zeichen, allein noch kein Beweis.',
+      ));
+    }
+  
+    const sender = parseAddressList(mail.header('sender'))[0];
+    if (sender && sender.domain && registrableDomain(sender.domain) !== fromDomain) {
+      befunde.push(befund(
+        'sender-abweichung', 'mittel', 12,
+        'Ein abweichender technischer Absender ist eingetragen',
+        'Der Sender-Header nennt, wer die Mail tatsächlich eingeliefert hat.',
+        [`From: ${from.address}`, `Sender: ${sender.address}`],
+        'Prüfe, ob dieser Dienstleister zum angeblichen Absender passt.',
+      ));
+    }
+  
+    const messageId = mail.header('message-id');
+    const midDomain = (messageId.match(/@([^>\s]+)>?\s*$/) || [])[1];
+    if (midDomain && registrableDomain(midDomain) !== fromDomain) {
+      befunde.push(befund(
+        'message-id-abweichung', 'niedrig', 8,
+        'Die Kennung der Nachricht stammt von einer anderen Domain',
+        'Die Message-ID wird vom einliefernden Server vergeben und passt normalerweise zum Absender.',
+        [`Message-ID: ${kuerzen(messageId, 80)}`, `Erwartete Domain: ${fromDomain}`],
+        'Bei Versand über Dienstleister ist das erklärbar. Nur zusammen mit anderen Punkten aussagekräftig.',
+      ));
+    }
+  }
+  
+  /** Empfängerfeld und Verteilerspuren. */
+  function pruefeEmpfaenger(mail, befunde) {
+    const to = mail.header('to');
+    if (!to) return;
+    if (/undisclosed[- ]recipients|^\s*$/i.test(to)) {
+      befunde.push(befund(
+        'empfaenger-verborgen', 'mittel', 14,
+        'Du stehst nicht im Empfängerfeld',
+        'Die Mail ging als Blindkopie an einen großen Verteiler - typisch für Massenversand.',
+        `To: ${kuerzen(to, 100)}`,
+        'Echte Kundenkommunikation ist an dich persönlich adressiert.',
+      ));
+      return;
+    }
+    const empfaenger = parseAddressList(to);
+    if (empfaenger.length > 15) {
+      befunde.push(befund(
+        'massenverteiler', 'mittel', 14,
+        `Die Mail ging sichtbar an ${empfaenger.length} Empfänger`,
+        'Ein offener Großverteiler passt nicht zu angeblich persönlichen Kontoangelegenheiten.',
+        `Erste Empfänger: ${empfaenger.slice(0, 3).map((e) => e.address).join(', ')} …`,
+        'Bei angeblich persönlicher Post ein starkes Warnzeichen.',
+      ));
+    }
+  }
+  
+  /** Spuren der Versandinfrastruktur. */
+  function pruefeVersandwege(mail, from, befunde) {
+    const received = mail.headerAll('received');
+  
+    if (mail.isEmail && received.length === 0) {
+      befunde.push(befund(
+        'keine-received', 'info', 0,
+        'Keine Zustellwege im Kopf enthalten',
+        'Received-Zeilen dokumentieren, über welche Server die Mail lief. Sie fehlen meist, wenn nur ein Ausschnitt kopiert wurde.',
+        [],
+        'Kopiere den vollständigen Original-Header, damit die Herkunft geprüft werden kann.',
+        'Technik',
+      ));
+    }
+  
+    if (mail.header('x-php-originating-script')) {
+      befunde.push(befund(
+        'php-versand', 'hoch', 22,
+        'Versendet von einem Skript auf einem Webserver',
+        'Dieser Hinweis taucht typischerweise auf, wenn eine gekaperte Webseite zum Massenversand missbraucht wird.',
+        `X-PHP-Originating-Script: ${kuerzen(mail.header('x-php-originating-script'), 90)}`,
+        'Seriöse Absender verschicken nicht über gehackte Kontaktformulare.',
+        'Technik',
+      ));
+    }
+  
+    // Der älteste Received-Eintrag steht unten und nennt den Ursprung.
+    const ursprung = received[received.length - 1] || '';
+    const ipTreffer = ursprung.match(/\[(\d{1,3}(?:\.\d{1,3}){3})\]/);
+    if (ipTreffer) {
+      befunde.push(befund(
+        'ursprungs-ip', 'info', 0,
+        `Erste einliefernde IP-Adresse: ${ipTreffer[1]}`,
+        'Über diese Adresse lässt sich nachvollziehen, aus welchem Netz und Land die Mail tatsächlich kam.',
+        kuerzen(ursprung, 200),
+        'Schlage die Adresse bei einem Whois-Dienst nach. Passt das Land oder der Anbieter nicht zum angeblichen Absender, ist das ein starkes Indiz.',
+        'Technik',
+      ));
+    }
+  
+    const datum = mail.header('date');
+    if (datum) {
+      const zeit = Date.parse(datum);
+      if (!Number.isNaN(zeit)) {
+        const abstandTage = (Date.now() - zeit) / 86400000;
+        if (abstandTage < -2) {
+          befunde.push(befund(
+            'datum-zukunft', 'mittel', 12,
+            'Das Absendedatum liegt in der Zukunft',
+            'Ein manipuliertes Datum sorgt dafür, dass die Mail im Postfach ganz oben stehen bleibt.',
+            `Date: ${datum}`,
+            'Ein deutliches Zeichen für einen manipulierten Kopf.',
+            'Technik',
+          ));
+        }
+      }
+    }
+  
+    const noreply = from && /^(no-?reply|noreply|donotreply|do-not-reply|bounce)/i.test(from.local || '');
+    if (noreply && !mail.header('list-unsubscribe') && mail.isEmail) {
+      befunde.push(befund(
+        'noreply-ohne-abmeldung', 'niedrig', 6,
+        'Absender "noreply" ohne Abmeldemöglichkeit',
+        'Wer im großen Stil versendet, muss in der EU eine Abmeldung anbieten. Betrüger sparen sich das.',
+        `From: ${from.address}`,
+        'Allein kein Beweis, passt aber ins Bild eines unseriösen Massenversands.',
+        'Technik',
+      ));
+    }
+  }
+  
+  /** Alle Absender- und Kopfregeln anwenden. */
+  function pruefeHeader(mail) {
+    const befunde = [];
+    if (!mail.isEmail) {
+      befunde.push(befund(
+        'kein-header', 'info', 0,
+        'Kein Mail-Kopf erkannt - nur der Text wurde geprüft',
+        'Ohne Kopfzeilen lassen sich Absender, Zustellweg und Echtheitsprüfung nicht bewerten. Das sind die aussagekräftigsten Merkmale überhaupt.',
+        [],
+        'Füge die Mail als Originaltext ein (in der Anleitung unten steht, wie das in deinem Programm geht). Dann fällt die Bewertung deutlich sicherer aus.',
+        'Technik',
+      ));
+      return befunde;
+    }
+  
+    const from = parseAddressList(mail.header('from'))[0] || null;
+  
+    if (!from || !from.domain) {
+      befunde.push(befund(
+        'from-unlesbar', 'mittel', 14,
+        'Der Absender lässt sich nicht sauber auslesen',
+        'Ein kaputtes oder fehlendes From-Feld ist bei seriöser Post sehr ungewöhnlich.',
+        `From: ${kuerzen(mail.header('from'), 120) || '(fehlt)'}`,
+        'Behandle die Mail mit besonderer Vorsicht.',
+      ));
+    }
+  
+    pruefeAuthentifizierung(mail, befunde);
+    pruefeAnzeigename(from, befunde, mail);
+    pruefeAbsenderdomain(from, befunde);
+    pruefeAntwortpfade(mail, from, befunde);
+    pruefeEmpfaenger(mail, befunde);
+    pruefeVersandwege(mail, from, befunde);
+  
+    return befunde;
+  }
+  return { pruefeHeader };
+})();
+
+// ----- src/rules/links.js -----
+const __M_rules_links_js = (() => {
+  const {registrableDomain, parseAddressList} = __M_parse_eml_js;
+  const {URL_SHORTENERS, RISKY_TLDS, IMPERSONATED_BRANDS} = __M_data_js;
+  const {extractLinks, istIpAdresse, findHomoglyphs, opticalNormalize, enthaeltMarkenname, levenshtein, kuerzen} = __M_utils_js;
+  
+  
+  
+  const KAT = 'Links';
+  
+  function befund(id, schwere, gewicht, titel, erklaerung, beweis, rat) {
+    return { id, kategorie: KAT, schwere, gewicht, titel, erklaerung, beweis: [].concat(beweis).filter(Boolean), rat };
+  }
+  
+  /** Sieht der Ankertext selbst wie eine Adresse aus? */
+  function ankerAlsDomain(text) {
+    const t = String(text).trim().replace(/\s+/g, '');
+    if (!t || t.length > 120) return '';
+    const treffer = t.match(/^(?:https?:\/\/)?(?:www\.)?([a-z0-9-]+(?:\.[a-z0-9-]+)+)(?:[/?#].*)?$/i);
+    return treffer ? treffer[1].toLowerCase() : '';
+  }
+  
+  function pruefeLinks(mail) {
+    const befunde = [];
+    const links = extractLinks({ text: mail.text, html: mail.html });
+    const from = parseAddressList(mail.header('from'))[0] || null;
+    const absenderDomain = from ? registrableDomain(from.domain) : '';
+  
+    const echteLinks = links.filter((l) => ['http', 'https'].includes(l.schema) && l.gueltig);
+  
+    // Sichtbarer Text verspricht eine andere Adresse als das Ziel.
+    const getarnt = [];
+    for (const link of links) {
+      const versprochen = ankerAlsDomain(link.ankerText);
+      if (!versprochen || !link.domain) continue;
+      const versprochenReg = registrableDomain(versprochen);
+      if (versprochenReg && versprochenReg !== link.domain) {
+        getarnt.push({ versprochen: versprochenReg, ziel: link.domain, url: link.url, anker: link.ankerText });
+      }
+    }
+    if (getarnt.length) {
+      befunde.push(befund(
+        'link-tarnung', 'kritisch', 38,
+        'Ein Link zeigt woanders hin, als der sichtbare Text verspricht',
+        'Das ist der klassischste Phishing-Trick überhaupt: Angezeigt wird die echte Adresse, verlinkt ist eine fremde.',
+        getarnt.slice(0, 4).map((g) => `Sichtbar "${kuerzen(g.anker, 60)}" führt zu ${g.ziel} (${kuerzen(g.url, 90)})`),
+        'Fahre mit der Maus über jeden Link, ohne zu klicken. Unten links zeigt dein Programm das echte Ziel. Auf dem Handy: lange auf den Link drücken.',
+      ));
+    }
+  
+    for (const link of links) {
+      if (link.schema === 'javascript' || link.schema === 'vbscript' || link.schema === 'data') {
+        befunde.push(befund(
+          'aktiver-link', 'kritisch', 34,
+          `Link mit ausführbarem Inhalt (${link.schema}:)`,
+          'Solche Links führen keinen Seitenaufruf aus, sondern starten Code oder öffnen eine im Link versteckte Seite.',
+          kuerzen(link.url, 120),
+          'In normaler E-Mail gibt es dafür keinen legitimen Grund.',
+        ));
+        break;
+      }
+    }
+  
+    const gesehen = new Set();
+    const einmalig = (id) => {
+      if (gesehen.has(id)) return false;
+      gesehen.add(id);
+      return true;
+    };
+  
+    for (const link of echteLinks) {
+      // Benutzername vor dem @: alles davor ist Dekoration.
+      if (link.benutzerInfo && einmalig('userinfo')) {
+        befunde.push(befund(
+          'link-userinfo', 'kritisch', 36,
+          'Link enthält vor dem @-Zeichen eine vorgetäuschte Adresse',
+          'Alles zwischen den Schrägstrichen und dem @ ist Beiwerk. Der Browser geht zu dem, was hinter dem @ steht.',
+          [kuerzen(link.url, 140), `Tatsächliches Ziel: ${link.host}`],
+          'Suche in jeder Adresse nach einem @. In einer echten Web-Adresse hat es nichts verloren.',
+        ));
+      }
+  
+      if (istIpAdresse(link.host) && einmalig('ip-link')) {
+        befunde.push(befund(
+          'link-ip', 'hoch', 30,
+          'Link führt direkt auf eine IP-Adresse statt auf einen Namen',
+          'Wer eine echte Marke betreibt, benutzt seinen Domainnamen. Eine nackte IP deutet auf einen gekaperten oder anonymen Server.',
+          kuerzen(link.url, 140),
+          'Nicht anklicken.',
+        ));
+      }
+  
+      if (link.host.includes('xn--') && einmalig('punycode-link')) {
+        befunde.push(befund(
+          'link-punycode', 'hoch', 30,
+          'Link nutzt eine kodierte Sonderzeichen-Domain',
+          'Die Adresse sieht im Browser aus wie das Original, ist aber eine andere Domain.',
+          [kuerzen(link.url, 140), `Host: ${link.host}`],
+          'Nicht anklicken.',
+        ));
+      }
+  
+      const homo = findHomoglyphs(link.host);
+      if (homo.length && einmalig('homo-link')) {
+        befunde.push(befund(
+          'link-homoglyphen', 'kritisch', 34,
+          'Link-Adresse enthält Zeichen aus einem fremden Schriftsystem',
+          'Optisch identische Buchstaben führen auf eine völlig andere Seite.',
+          [kuerzen(link.url, 140), `Verdächtige Zeichen: ${homo.join(' ')}`],
+          'Eindeutige Täuschungsabsicht.',
+        ));
+      }
+  
+      if (URL_SHORTENERS.has(link.domain) && einmalig('shortener')) {
+        befunde.push(befund(
+          'link-kurzlink', 'mittel', 16,
+          `Kurzlink verbirgt das Ziel (${link.domain})`,
+          'Ein Kurzlink zeigt dir vor dem Klick nicht, wo du landest.',
+          kuerzen(link.url, 120),
+          'In Geschäftspost unüblich. Wenn du das Ziel wissen willst, benutze einen Kurzlink-Auflöser statt zu klicken.',
+        ));
+      }
+  
+      if (link.port && !['80', '443'].includes(link.port) && einmalig('port')) {
+        befunde.push(befund(
+          'link-port', 'mittel', 16,
+          `Link benutzt den ungewöhnlichen Port ${link.port}`,
+          'Normale Webseiten laufen auf 80 oder 443. Abweichende Ports deuten auf einen provisorisch aufgesetzten Server.',
+          kuerzen(link.url, 140),
+          'Nicht anklicken.',
+        ));
+      }
+  
+      if (link.schema === 'http' && /login|anmeld|konto|account|secure|verify|bestaetig|zahlung|payment|bank/i.test(link.url) && einmalig('http-login')) {
+        befunde.push(befund(
+          'link-unverschlüsselt', 'mittel', 18,
+          'Unverschlüsselter Link zu einer angeblichen Anmeldeseite',
+          'Kein Anbieter betreibt seit Jahren noch eine Anmeldung ohne Verschlüsselung.',
+          kuerzen(link.url, 140),
+          'Anmeldeseiten ohne https sind entweder Betrug oder grob fahrlässig. In beiden Fällen: nicht eingeben.',
+        ));
+      }
+  
+      const tld = link.domain.split('.').pop();
+      if (RISKY_TLDS.has(tld) && einmalig(`tld-${tld}`)) {
+        befunde.push(befund(
+          'link-tld', 'mittel', 14,
+          `Link führt auf eine .${tld}-Domain`,
+          'Diese Endungen sind anonym und billig zu haben und deshalb bei Betrügern beliebt.',
+          [kuerzen(link.url, 120), `Domain: ${link.domain}`],
+          'Passt die Endung nicht zum angeblichen Absender, ist das ein starkes Warnzeichen.',
+        ));
+      }
+  
+      // Weiterleitungskette: eine zweite Adresse steckt im Parameter.
+      if (/[?&][^=]*=(?:https?%3a|https?:)/i.test(link.url) && einmalig('redirect')) {
+        befunde.push(befund(
+          'link-weiterleitung', 'mittel', 16,
+          'Link enthält eine zweite, weiterleitende Adresse',
+          'Betrüger hängen sich an fremde Weiterleitungen, damit die sichtbare Domain vertrauenswürdig wirkt.',
+          kuerzen(link.url, 160),
+          'Sieh dir an, was hinter dem zweiten "http" steht - dort landest du wirklich.',
+        ));
+      }
+  
+      const labels = link.host.split('.').filter(Boolean);
+      if (labels.length > 4 && einmalig('subdomains')) {
+        befunde.push(befund(
+          'link-viele-subdomains', 'niedrig', 8,
+          'Sehr viele Bestandteile in der Link-Adresse',
+          'Lange Adressketten sollen verschleiern, welche Domain wirklich dahintersteht.',
+          [kuerzen(link.url, 140), `Tatsächliche Domain: ${link.domain}`],
+          'Lies die Adresse von rechts nach links. Maßgeblich sind die letzten beiden Bestandteile vor dem ersten Schrägstrich.',
+        ));
+      }
+  
+      // Markenname im Host, aber nicht in der registrierten Domain.
+      for (const marke of IMPERSONATED_BRANDS) {
+        if (marke.token.length < 4) continue;
+        if (!enthaeltMarkenname(link.host, marke.token)) continue;
+        if (enthaeltMarkenname(link.domain, marke.token)) continue;
+        if (!einmalig(`marke-${marke.token}`)) break;
+        befunde.push(befund(
+          'link-marke-subdomain', 'kritisch', 34,
+          `Link trägt "${marke.label}" im Namen, gehört aber zu ${link.domain}`,
+          'In einer Adresse wie sparkasse.de.sicher-login.example zählt nur das Ende: example. Alles davor ist frei erfunden.',
+          [kuerzen(link.url, 160), `Echte Domain: ${link.domain}`, `Erwartet wäre: ${marke.domains.join(', ')}`],
+          `Rufe ${marke.domains[0]} selbst im Browser auf, statt den Link zu benutzen.`,
+        ));
+        break;
+      }
+  
+      // Tippfehler-Domain im Link.
+      for (const marke of IMPERSONATED_BRANDS) {
+        for (const echt of marke.domains) {
+          if (link.domain === echt) continue;
+          const abstand = levenshtein(link.domain, echt);
+          const optischGleich = opticalNormalize(link.domain) === opticalNormalize(echt);
+          if (!optischGleich && !(abstand > 0 && abstand <= 2 && echt.length >= 7)) continue;
+          if (!einmalig(`typo-${echt}`)) break;
+          befunde.push(befund(
+            'link-tippfehler', 'kritisch', 34,
+            `Link-Domain ist von ${echt} kaum zu unterscheiden`,
+            'Eine einzige vertauschte oder ausgetauschte Stelle reicht, damit die Adresse jemand anderem gehört.',
+            [kuerzen(link.url, 140), `Link führt zu: ${link.domain}`, `Original: ${echt}`],
+            `Die echte Adresse lautet ${echt}.`,
+          ));
+          break;
+        }
+      }
+    }
+  
+    // Formular direkt in der Mail.
+    if (/<form\b/i.test(mail.html)) {
+      const hatPasswort = /<input[^>]*type\s*=\s*["']?password/i.test(mail.html);
+      befunde.push(befund(
+        'formular-in-mail', hatPasswort ? 'kritisch' : 'hoch', hatPasswort ? 40 : 26,
+        hatPasswort ? 'Die Mail enthält ein Passwortfeld' : 'Die Mail enthält ein Eingabeformular',
+        'Seriöse Anbieter lassen dich niemals direkt in einer E-Mail Daten eingeben. Sie schicken dich immer auf ihre Webseite.',
+        (mail.html.match(/<form[^>]*>/i) || []).map((f) => kuerzen(f, 140)),
+        'Nichts eingeben. Wenn du glaubst, dass etwas dran ist, ruf die Seite des Anbieters selbst auf.',
+      ));
+    }
+  
+    // Versteckter Text zur Filterumgehung.
+    const versteckt = mail.html.match(/style\s*=\s*["'][^"']*(?:display\s*:\s*none|font-size\s*:\s*0|visibility\s*:\s*hidden|opacity\s*:\s*0)[^"']*["']/gi) || [];
+    if (versteckt.length >= 2) {
+      befunde.push(befund(
+        'versteckter-text', 'mittel', 18,
+        'Die Mail enthält unsichtbaren Text',
+        'Unsichtbare Wörter werden eingebaut, um Spamfilter zu verwirren. Seriöse Newsletter brauchen das nicht.',
+        versteckt.slice(0, 3).map((v) => kuerzen(v, 90)),
+        'Ein deutlicher Hinweis auf gezielte Filterumgehung.',
+      ));
+    }
+  
+    // Fast nur Bild, kaum Text.
+    if (mail.html) {
+      const bilder = (mail.html.match(/<img\b/gi) || []).length;
+      const textLaenge = (mail.text || '').replace(/\s/g, '').length;
+      if (bilder >= 1 && textLaenge < 120 && mail.html.length > 300) {
+        befunde.push(befund(
+          'nur-bild', 'mittel', 16,
+          'Der Inhalt steckt praktisch nur in einem Bild',
+          'Text als Bild zu verschicken, umgeht jede inhaltliche Prüfung durch den Spamfilter.',
+          `${bilder} Bild(er), nur ${textLaenge} Zeichen Text`,
+          'Bei angeblichen Rechnungen und Kontowarnungen ein starkes Warnzeichen.',
+        ));
+      }
+    }
+  
+    if (echteLinks.length && absenderDomain) {
+      const fremde = [...new Set(echteLinks.map((l) => l.domain))]
+        .filter((d) => d && d !== absenderDomain && !URL_SHORTENERS.has(d));
+      if (fremde.length) {
+        befunde.push(befund(
+          'link-fremde-domain', 'niedrig', 8,
+          'Die Links führen nicht zur Domain des Absenders',
+          'Bei Versand über Marketing-Dienstleister ist das normal, bei Kontowarnungen einer Bank nicht.',
+          [`Absender: ${absenderDomain}`, `Link-Ziele: ${fremde.slice(0, 5).join(', ')}`],
+          'Frage dich, ob dieser Betreiber zum angeblichen Absender passt.',
+        ));
+      }
+    }
+  
+    if (!links.length) {
+      befunde.push({
+        id: 'keine-links', kategorie: KAT, schwere: 'info', gewicht: 0,
+        titel: 'Keine Links gefunden',
+        erklaerung: 'In der eingefügten Fassung sind keine anklickbaren Adressen enthalten.',
+        beweis: [],
+        rat: 'Falls die Mail im Postfach Links enthält, füge sie noch einmal als Originaltext ein - beim reinen Kopieren gehen sie oft verloren.',
+      });
+    }
+  
+    return befunde;
+  }
+  return { pruefeLinks };
+})();
+
+// ----- src/rules/content.js -----
+const __M_rules_content_js = (() => {
+  const {CONTENT_SIGNALS} = __M_data_js;
+  const {htmlToText, findHomoglyphs, kuerzen} = __M_utils_js;
+  const {parseAddressList} = __M_parse_eml_js;
+  
+  
+  
+  const KAT = 'Inhalt';
+  
+  /**
+   * Falsch dekodiertes UTF-8 ("Mojibake"): ein Umlaut, der als zwei Zeichen
+   * durchgereicht wurde. Bewusst aus ASCII-Escapes gebaut, damit die Quelldatei
+   * selbst keine Sonderzeichen enthält.
+   */
+  const MOJIBAKE = new RegExp('[\\u00c3\\u00e2\\u00c2][\\u0080-\\u00bf]', 'g');
+  
+  function befund(id, schwere, gewicht, titel, erklaerung, beweis, rat) {
+    return { id, kategorie: KAT, schwere, gewicht, titel, erklaerung, beweis: [].concat(beweis).filter(Boolean), rat };
+  }
+  
+  /** Die Fundstelle mitsamt etwas Umgebung zeigen, damit die Bewertung nachvollziehbar bleibt. */
+  function fundstelle(text, treffer) {
+    const index = text.toLowerCase().indexOf(String(treffer).toLowerCase());
+    if (index === -1) return kuerzen(treffer, 120);
+    const start = Math.max(0, index - 45);
+    const ende = Math.min(text.length, index + treffer.length + 45);
+    const prefix = start > 0 ? '...' : '';
+    const suffix = ende < text.length ? '...' : '';
+    return `${prefix}${kuerzen(text.slice(start, ende), 160)}${suffix}`;
+  }
+  
+  function pruefeInhalt(mail) {
+    const befunde = [];
+    const sichtbar = [mail.text, htmlToText(mail.html)].filter(Boolean).join('\n');
+    const betreff = mail.header('subject');
+    const gesamt = `${betreff}\n${sichtbar}`;
+  
+    if (!gesamt.trim()) {
+      return [befund(
+        'kein-inhalt', 'info', 0,
+        'Kein lesbarer Text gefunden',
+        'Ohne Text lassen sich die inhaltlichen Merkmale nicht prüfen.',
+        [],
+        'Füge den Text der Mail mit ein.',
+      )];
+    }
+  
+    for (const signal of CONTENT_SIGNALS) {
+      const treffer = [];
+      for (const muster of signal.muster) {
+        const gefunden = gesamt.match(muster);
+        if (gefunden) treffer.push(gefunden[0]);
+        if (treffer.length >= 4) break;
+      }
+      if (!treffer.length) continue;
+  
+      // Mehrere unabhängige Treffer einer Gruppe wiegen etwas schwerer.
+      const zuschlag = Math.min(treffer.length - 1, 2) * 3;
+      befunde.push(befund(
+        `inhalt-${signal.id}`, signal.schwere, signal.gewicht + zuschlag,
+        signal.titel, signal.erklaerung,
+        [...new Set(treffer)].map((t) => fundstelle(gesamt, t)),
+        signal.rat,
+      ));
+    }
+  
+    // Anrede: steht der eigene Name überhaupt drin?
+    const empfaenger = parseAddressList(mail.header('to'))[0];
+    if (empfaenger && empfaenger.local) {
+      const namensteile = empfaenger.local.split(/[._-]/).filter((t) => t.length >= 3);
+      const nameKommtVor = namensteile.some((t) => sichtbar.toLowerCase().includes(t.toLowerCase()));
+      const hatAnrede = /\b(sehr geehrte|liebe|hallo|guten tag|dear)\b/i.test(sichtbar);
+      if (hatAnrede && !nameKommtVor && namensteile.length) {
+        befunde.push(befund(
+          'inhalt-name-fehlt', 'niedrig', 8,
+          'Dein Name kommt im Text nicht vor',
+          'Ein Anbieter, bei dem du wirklich Kunde bist, kennt und benutzt deinen Namen.',
+          `Empfänger: ${empfaenger.address}`,
+          'Für sich genommen schwach, im Zusammenspiel mit Zeitdruck und Links aber aussagekräftig.',
+        ));
+      }
+    }
+  
+    const mojibake = gesamt.match(MOJIBAKE) || [];
+    if (mojibake.length >= 3) {
+      befunde.push(befund(
+        'inhalt-zeichensalat', 'mittel', 14,
+        'Falsch dargestellte Umlaute im Text',
+        'Wenn ae, oe, ue und ss als Zeichenwirrwarr erscheinen, wurde die Mail mit einem fehlerhaft eingerichteten Werkzeug verschickt.',
+        `${mojibake.length} betroffene Stellen im Text`,
+        'Große Unternehmen bekommen ihre Umlaute hin. Ein deutliches Indiz für Massenversand aus fremder Hand.',
+      ));
+    }
+  
+    // Homoglyphen mitten im Fließtext.
+    const homoText = findHomoglyphs(gesamt);
+    if (homoText.length >= 2) {
+      befunde.push(befund(
+        'inhalt-homoglyphen', 'mittel', 18,
+        'Fremde Schriftzeichen im deutschen Text',
+        'Einzelne kyrillische oder griechische Buchstaben werden eingestreut, um Wortfilter auszuhebeln.',
+        `Gefundene Zeichen: ${homoText.slice(0, 8).join(' ')}`,
+        'In normalem deutschem Text haben solche Zeichen nichts zu suchen.',
+      ));
+    }
+  
+    const hatUmlaute = /[äöüÄÖÜß]/.test(gesamt);
+    const umschreibungen = [/\bfuer\b/i, /\bueber\b/i, /\bmoeglich\b/i, /\bkoennen\b/i, /\bmuessen\b/i]
+      .filter((m) => m.test(gesamt)).length;
+    if (hatUmlaute && umschreibungen >= 2) {
+      befunde.push(befund(
+        'inhalt-mischschreibung', 'niedrig', 7,
+        'Umlaute mal geschrieben, mal umschrieben',
+        'Ein uneinheitlicher Text deutet auf zusammenkopierte oder maschinell übersetzte Vorlagen hin.',
+        [],
+        'Schwaches Signal - aber große Unternehmen lassen ihre Kundenmails Korrektur lesen.',
+      ));
+    }
+  
+    const grussformelFehlt = !/(mit freundlichen gr|freundliche gr|beste gr|viele gr|ihr team|kind regards|best regards)/i.test(sichtbar);
+    if (sichtbar.length > 200 && grussformelFehlt) {
+      befunde.push(befund(
+        'inhalt-keine-signatur', 'niedrig', 6,
+        'Keine ordentliche Grußformel oder Signatur',
+        'Geschäftspost in Deutschland trägt fast immer eine Signatur mit Firmenangaben.',
+        [],
+        'Fehlende Impressumsangaben in einer angeblichen Firmenmail sind ein schlechtes Zeichen.',
+      ));
+    }
+  
+    if (/^(?:re|aw|fwd|wg)\s*:/i.test(betreff) && !mail.header('in-reply-to') && !mail.header('references')) {
+      befunde.push(befund(
+        'inhalt-falsche-antwort', 'mittel', 16,
+        'Betreff täuscht eine Antwort auf einen früheren Austausch vor',
+        'Ein vorangestelltes "AW:" oder "Re:" soll Vertrautheit erzeugen. Die technischen Bezugsfelder fehlen aber - es gab nie einen Vorgänger.',
+        `Betreff: ${kuerzen(betreff, 120)}`,
+        'Durchsuche dein Postfach nach der angeblichen Vorgängermail. Findest du keine, ist der Betreff erfunden.',
+      ));
+    }
+  
+    return befunde;
+  }
+  return { pruefeInhalt };
+})();
+
+// ----- src/rules/attachments.js -----
+const __M_rules_attachments_js = (() => {
+  const {EXTENSION_RISK} = __M_data_js;
+  const {htmlToText, kuerzen} = __M_utils_js;
+  
+  
+  const KAT = 'Anhänge';
+  
+  /**
+   * Unsichtbare Steuerzeichen für Schreibrichtung und Formatierung.
+   * Damit lässt sich "rechnung.exe" auf dem Bildschirm zu "rechnung.txt" drehen.
+   * Bewusst aus ASCII-Escapes gebaut.
+   */
+  const STEUERZEICHEN = new RegExp('[\\u200b-\\u200f\\u202a-\\u202e\\u2066-\\u2069\\ufeff]');
+  
+  function befund(id, schwere, gewicht, titel, erklaerung, beweis, rat) {
+    return { id, kategorie: KAT, schwere, gewicht, titel, erklaerung, beweis: [].concat(beweis).filter(Boolean), rat };
+  }
+  
+  function endungVon(dateiname) {
+    const treffer = String(dateiname).toLowerCase().match(/\.([a-z0-9]{1,10})$/);
+    return treffer ? treffer[1] : '';
+  }
+  
+  function klasseFuer(endung) {
+    for (const [name, klasse] of Object.entries(EXTENSION_RISK)) {
+      if (klasse.endungen.includes(endung)) return { name, ...klasse };
+    }
+    return null;
+  }
+  
+  function pruefeAnhaenge(mail) {
+    const befunde = [];
+    const text = `${mail.text}\n${htmlToText(mail.html)}`;
+    const anhaenge = mail.attachments.filter((a) => a.filename || !a.inline);
+    if (!anhaenge.length) return befunde;
+  
+    for (const anhang of anhaenge) {
+      const name = anhang.filename || '(ohne Namen)';
+  
+      if (STEUERZEICHEN.test(name)) {
+        befunde.push(befund(
+          'anhang-steuerzeichen', 'kritisch', 45,
+          'Dateiname enthält ein unsichtbares Steuerzeichen',
+          'Mit solchen Zeichen lässt sich der Name optisch umdrehen: Aus einer Programmdatei wird auf dem Bildschirm scheinbar ein Textdokument.',
+          `Dateiname: ${kuerzen(name, 100)}`,
+          'Dafür gibt es keinen harmlosen Grund. Den Anhang unter keinen Umständen öffnen.',
+        ));
+        continue;
+      }
+  
+      // Doppelte Endung, z. B. rechnung.pdf.exe
+      const doppel = name.toLowerCase().match(/\.(pdf|docx?|xlsx?|jpe?g|png|txt|rtf|csv)\.([a-z0-9]{2,5})$/);
+      if (doppel && klasseFuer(doppel[2])) {
+        befunde.push(befund(
+          'anhang-doppelte-endung', 'kritisch', 45,
+          `Doppelte Dateiendung: sieht aus wie .${doppel[1]}, ist aber .${doppel[2]}`,
+          'Windows blendet bekannte Endungen standardmäßig aus. Dadurch erscheint die Datei im Postfach als harmloses Dokument.',
+          `Dateiname: ${kuerzen(name, 100)}`,
+          'Nicht öffnen. Stelle in Windows im Explorer unter "Ansicht" die Dateinamenerweiterungen dauerhaft auf sichtbar.',
+        ));
+        continue;
+      }
+  
+      const endung = endungVon(name);
+      const klasse = klasseFuer(endung);
+  
+      if (!klasse) {
+        if (!endung) {
+          befunde.push(befund(
+            'anhang-ohne-endung', 'mittel', 14,
+            'Anhang ohne erkennbare Dateiendung',
+            'Ohne Endung lässt sich nicht beurteilen, was beim Öffnen passiert.',
+            `Dateiname: ${kuerzen(name, 100)} (${anhang.contentType})`,
+            'Nicht öffnen, bevor du beim Absender über einen dir bekannten Weg nachgefragt hast.',
+          ));
+        }
+        continue;
+      }
+  
+      let gewicht = klasse.gewicht;
+      let schwere = klasse.schwere;
+      let titel = `Riskanter Anhang: ${name}`;
+      const beweis = [`Dateiname: ${kuerzen(name, 100)}`, `Typ: ${anhang.contentType}`];
+      if (anhang.size) beweis.push(`Größe: ca. ${Math.max(1, Math.round(anhang.size / 1024))} KB`);
+  
+      // Ein passwortgeschütztes Archiv richtet sich gezielt gegen den Virenscanner.
+      if (klasse.name === 'archiv' && /passwor|kennwort|entpacken mit/i.test(text)) {
+        gewicht = 34;
+        schwere = 'kritisch';
+        titel = `Passwortgeschütztes Archiv im Anhang: ${name}`;
+        beweis.push('Im Text wird ein Passwort für das Archiv genannt - so kann kein Virenscanner hineinsehen.');
+      }
+  
+      befunde.push(befund(
+        `anhang-${klasse.name}`, schwere, gewicht, titel, klasse.hinweis, beweis,
+        klasse.name === 'dokument'
+          ? 'Auch unauffällige Formate können Links oder QR-Codes zu einer Phishing-Seite enthalten. Öffnen ja, klicken nein.'
+          : 'Nicht öffnen. Wenn du den Anhang wirklich erwartest, frag beim Absender unter einer dir bekannten Telefonnummer nach - nicht unter der aus der Mail.',
+      ));
+    }
+  
+    if (anhaenge.length > 5) {
+      befunde.push(befund(
+        'anhang-viele', 'niedrig', 6,
+        `Ungewöhnlich viele Anhänge (${anhaenge.length})`,
+        'Viele Dateien auf einmal lenken die Aufmerksamkeit von der einen gefährlichen ab.',
+        anhaenge.slice(0, 6).map((a) => a.filename || '(ohne Namen)').join(', '),
+        'Prüfe jede Datei einzeln.',
+      ));
+    }
+  
+    return befunde;
+  }
+  return { pruefeAnhaenge };
+})();
+
+// ----- src/analyzer.js -----
+const __M_analyzer_js = (() => {
+  const {parseEml, parseAddressList, registrableDomain} = __M_parse_eml_js;
+  const {pruefeHeader} = __M_rules_header_js;
+  const {pruefeLinks} = __M_rules_links_js;
+  const {pruefeInhalt} = __M_rules_content_js;
+  const {pruefeAnhaenge} = __M_rules_attachments_js;
+  
+  
+  
+  
+  
+  const SCHWEREN = ['kritisch', 'hoch', 'mittel', 'niedrig', 'info', 'gut'];
+  
+  const SCHWERE_RANG = Object.fromEntries(SCHWEREN.map((s, i) => [s, i]));
+  
+  const STUFEN = {
+    rot: {
+      name: 'Sehr wahrscheinlich Betrug',
+      kurz: 'Finger weg',
+      farbe: '#c0392b',
+      text: 'Diese Nachricht trägt mehrere Merkmale, die in seriöser Post nicht vorkommen. Nichts anklicken, nichts öffnen, nichts eingeben.',
+    },
+    gelb: {
+      name: 'Verdächtig',
+      kurz: 'Erst prüfen',
+      farbe: '#c77700',
+      text: 'Einzelne Merkmale sind auffällig. Bestätige den Absender über einen zweiten, selbst gewählten Weg, bevor du irgendetwas tust.',
+    },
+    gruen: {
+      name: 'Keine typischen Betrugsmerkmale gefunden',
+      kurz: 'Unauffällig',
+      farbe: '#1e7a46',
+      text: 'Die geprüften Merkmale sind unauffällig. Das ist kein Freibrief: Gut gemachte Angriffe bestehen diese Prüfung ebenfalls.',
+    },
+  };
+  
+  /**
+   * Einzelgewichte sättigend verrechnen. Zehn schwache Signale sollen nicht
+   * dasselbe Gewicht bekommen wie ein eindeutiger Beweis, und der Wert darf
+   * nie über 100 hinauslaufen.
+   */
+  function verrechne(befunde) {
+    let rest = 1;
+    for (const b of befunde) {
+      const gewicht = Math.max(0, Math.min(95, Number(b.gewicht) || 0));
+      rest *= 1 - gewicht / 100;
+    }
+    return Math.round((1 - rest) * 100);
+  }
+  
+  /** Wie belastbar ist das Urteil überhaupt? */
+  function bestimmeSicherheit(mail) {
+    if (!mail.isEmail) {
+      return {
+        stufe: 'niedrig',
+        text: 'Es wurde nur der Text geprüft. Absender, Zustellweg und Echtheitsprüfung fehlen - also genau die aussagekräftigsten Merkmale.',
+      };
+    }
+    const hatAuth = mail.headerAll('authentication-results').length > 0
+      || mail.headerAll('arc-authentication-results').length > 0
+      || mail.headerAll('received-spf').length > 0;
+    const hatReceived = mail.headerAll('received').length > 0;
+    if (hatAuth && hatReceived) {
+      return {
+        stufe: 'hoch',
+        text: 'Vollständiger Mail-Kopf mit Zustellweg und Echtheitsprüfung vorhanden. Das Urteil steht auf breiter Grundlage.',
+      };
+    }
+    if (hatReceived) {
+      return {
+        stufe: 'mittel',
+        text: 'Mail-Kopf vorhanden, aber ohne Ergebnis der Echtheitsprüfung (SPF, DKIM, DMARC). Damit fehlt der technische Herkunftsnachweis.',
+      };
+    }
+    return {
+      stufe: 'mittel',
+      text: 'Nur ein Teil des Mail-Kopfs vorhanden. Für eine belastbare Aussage fehlen die Zustellwege.',
+    };
+  }
+  
+  function sortiere(befunde) {
+    return [...befunde].sort((a, b) => {
+      const rang = SCHWERE_RANG[a.schwere] - SCHWERE_RANG[b.schwere];
+      if (rang !== 0) return rang;
+      return (b.gewicht || 0) - (a.gewicht || 0);
+    });
+  }
+  
+  /**
+   * Hauptfunktion: rohe Mail oder bloßen Text prüfen.
+   * @param {string} roh Inhalt der Mail, möglichst als Originaltext samt Kopfzeilen.
+   * @returns {object} Bericht mit Stufe, Punktzahl, Befunden und Absenderübersicht.
+   */
+  function analysiere(roh) {
+    const mail = parseEml(roh);
+  
+    const befunde = sortiere([
+      ...pruefeHeader(mail),
+      ...pruefeLinks(mail),
+      ...pruefeInhalt(mail),
+      ...pruefeAnhaenge(mail),
+    ]);
+  
+    const wertend = befunde.filter((b) => b.schwere !== 'info' && b.schwere !== 'gut');
+    const punkte = verrechne(wertend);
+    const kritische = wertend.filter((b) => b.schwere === 'kritisch');
+    const hohe = wertend.filter((b) => b.schwere === 'hoch');
+  
+    let stufe = 'gruen';
+    if (kritische.length > 0 || punkte >= 60) stufe = 'rot';
+    else if (punkte >= 22 || hohe.length > 0) stufe = 'gelb';
+  
+    const from = parseAddressList(mail.header('from'))[0] || null;
+    const replyTo = parseAddressList(mail.header('reply-to'))[0] || null;
+  
+    const zaehlung = Object.fromEntries(SCHWEREN.map((s) => [s, befunde.filter((b) => b.schwere === s).length]));
+  
+    return {
+      stufe,
+      urteil: STUFEN[stufe],
+      punkte,
+      sicherheit: bestimmeSicherheit(mail),
+      befunde,
+      zaehlung,
+      absender: {
+        anzeigename: from ? from.display : '',
+        adresse: from ? from.address : '',
+        domain: from ? from.domain : '',
+        registrierbareDomain: from ? registrableDomain(from.domain) : '',
+        antwortAn: replyTo ? replyTo.address : '',
+      },
+      kopf: {
+        istMail: mail.isEmail,
+        betreff: mail.header('subject'),
+        datum: mail.header('date'),
+        an: mail.header('to'),
+        returnPath: mail.header('return-path'),
+        messageId: mail.header('message-id'),
+      },
+      anhaenge: mail.attachments.map((a) => ({
+        name: a.filename, typ: a.contentType, groesse: a.size, eingebettet: a.inline,
+      })),
+      naechsteSchritte: naechsteSchritte(stufe, befunde),
+    };
+  }
+  
+  /** Konkrete Handlungsempfehlung, abgestuft nach Urteil. */
+  function naechsteSchritte(stufe, befunde) {
+    const hatAnhang = befunde.some((b) => b.kategorie === 'Anhänge' && b.schwere !== 'info');
+    const hatLink = befunde.some((b) => b.kategorie === 'Links' && ['kritisch', 'hoch'].includes(b.schwere));
+    const hatZugangsdaten = befunde.some((b) => b.id === 'inhalt-zugangsdaten');
+    const hatKontowechsel = befunde.some((b) => b.id === 'inhalt-kontowechsel');
+  
+    if (stufe === 'rot') {
+      const schritte = [
+        'Nicht antworten. Eine Antwort bestätigt nur, dass deine Adresse benutzt wird.',
+        'Keinen Link anklicken und keine Daten eingeben.',
+      ];
+      if (hatAnhang) schritte.push('Keinen Anhang öffnen - auch nicht "nur zum Nachsehen".');
+      if (hatKontowechsel) schritte.push('Bei einer angeblich geänderten Bankverbindung: unbedingt telefonisch rückfragen, unter der Nummer aus deinen alten Unterlagen.');
+      schritte.push('Absender als Spam melden und blockieren (siehe Anleitung unten).');
+      schritte.push('Mail an die Verbraucherzentrale weiterleiten: phishing@verbraucherzentrale.nrw');
+      schritte.push('Danach löschen.');
+      if (hatZugangsdaten || hatLink) {
+        schritte.push('Falls du schon geklickt oder Daten eingegeben hast: sofort das Passwort ändern und die Bank oder den Anbieter anrufen. Die Schritte dazu stehen unten unter "Wenn es schon passiert ist".');
+      }
+      return schritte;
+    }
+  
+    if (stufe === 'gelb') {
+      return [
+        'Noch nichts anklicken.',
+        'Absender über einen zweiten Weg bestätigen: Nummer oder Adresse selbst heraussuchen, nicht aus der Mail übernehmen.',
+        'Wenn es um ein Konto geht: die Seite des Anbieters selbst im Browser aufrufen und dort nachsehen, ob es die Meldung wirklich gibt.',
+        'Bestätigt sich der Verdacht: als Spam melden und löschen.',
+      ];
+    }
+  
+    return [
+      'Keine typischen Betrugsmerkmale gefunden - trotzdem gilt: Links nur anklicken, wenn du die Mail erwartet hast.',
+      'Bei allem, was Geld oder Zugangsdaten betrifft, die Seite grundsätzlich selbst im Browser aufrufen statt über einen Link.',
+      'Warst du unsicher genug, um zu prüfen? Dann frag im Zweifel trotzdem beim Absender nach.',
+    ];
+  }
+  return { SCHWEREN, STUFEN, analysiere };
+})();
+
+const { analysiere, STUFEN, SCHWEREN } = __M_analyzer_js;
+
+const BEISPIEL_MAIL = "Return-Path: <bounce@mailer-77.example-host.top>\nReceived: from mail-77.example-host.top ([185.234.219.14])\n\tby mx.provider.de with ESMTP id 4Rb2fk0Xz1\n\tfor <max.mustermann@provider.de>; Tue, 12 Aug 2025 03:14:07 +0200\nAuthentication-Results: mx.provider.de;\n\tspf=fail (sender IP is 185.234.219.14) smtp.mailfrom=example-host.top;\n\tdkim=none header.d=sparkasse-sicherheit.top;\n\tdmarc=fail (p=REJECT) header.from=sparkasse-sicherheit.top\nFrom: \"Sparkasse Sicherheitsteam\" <noreply@sparkasse-sicherheit.top>\nReply-To: kundenservice.sparkasse@gmx-support.icu\nTo: max.mustermann@provider.de\nSubject: =?UTF-8?B?SWhyIEtvbnRvIHd1cmRlIGdlc3BlcnJ0IC0gc29mb3J0aWdlcyBIYW5kZWxuIGVyZm9yZGVybGljaA==?=\nDate: Tue, 12 Aug 2025 03:14:05 +0200\nMessage-ID: <20250812031405.7712@mailer-77.example-host.top>\nMIME-Version: 1.0\nContent-Type: text/html; charset=UTF-8\nContent-Transfer-Encoding: quoted-printable\n\n<html><body>\n<p>Sehr geehrter Kunde,</p>\n<p>aus Sicherheitsgr=C3=BCnden wurde Ihr Online-Banking-Zugang\n<b>vor=C3=BCbergehend gesperrt</b>. Bitte best=C3=A4tigen Sie Ihre Daten\ninnerhalb von 24 Stunden, andernfalls erfolgt die endg=C3=BCltige\nKontoschlie=C3=9Fung und eine Geb=C3=BChr von 49,90 EUR wird f=C3=A4llig.</p>\n<p><a href=3D\"http://sparkasse.de.sicher-login.example-host.top/verify?token=\n=3Dxk29\">https://www.sparkasse.de/kundenportal</a></p>\n<p>Halten Sie Ihre PIN und eine g=C3=BCltige TAN bereit.</p>\n<p style=3D\"font-size:0\">lorem ipsum dolor sit amet consectetur</p>\n<p style=3D\"display:none\">unsichtbarer fuelltext gegen spamfilter</p>\n</body></html>\n";
+
+
+(() => {
+  'use strict';
+
+  const feld = document.getElementById('quelle');
+  const ziel = document.getElementById('ergebnis');
+  const formular = document.getElementById('formular');
+
+  const SCHWERE_TEXT = {
+    kritisch: 'Kritisch',
+    hoch: 'Hoch',
+    mittel: 'Mittel',
+    niedrig: 'Niedrig',
+    info: 'Hinweis',
+    gut: 'Unauffällig',
+  };
+
+  const KATEGORIE_TEXT = {
+    Absender: 'Absender',
+    Links: 'Links und eingebettete Inhalte',
+    Inhalt: 'Formulierungen',
+    'Anhänge': 'Anhänge',
+    Technik: 'Technische Herkunft',
+  };
+
+  const sicher = (wert) => String(wert ?? '').replace(/[&<>"']/g, (z) => (
+    { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[z]
+  ));
+
+  function baueSteckbrief(bericht) {
+    if (!bericht.kopf.istMail) return '';
+    const a = bericht.absender;
+    const zeilen = [];
+    const zeile = (bezeichnung, wert, warnen) => {
+      if (!wert) return;
+      zeilen.push(
+        '<div class="paar"><dt>' + sicher(bezeichnung) + '</dt><dd' +
+        (warnen ? ' class="warn"' : '') + '>' + sicher(wert) + '</dd></div>'
+      );
+    };
+    zeile('Angezeigter Name', a.anzeigename);
+    zeile('Tatsächliche Adresse', a.adresse || '(nicht lesbar)');
+    zeile('Registrierbare Domain', a.registrierbareDomain);
+    if (a.antwortAn && a.antwortAn !== a.adresse) {
+      zeilen.push('<div class="paar"><dt>Antworten gehen an</dt><dd><span class="warn">' +
+        sicher(a.antwortAn) + '</span></dd></div>');
+    }
+    zeile('Betreff', bericht.kopf.betreff);
+    zeile('Datum', bericht.kopf.datum);
+    if (bericht.anhaenge.length) {
+      zeile('Anhänge', bericht.anhaenge.map((x) => x.name || '(ohne Namen)').join(', '));
+    }
+    if (!zeilen.length) return '';
+    return '<section class="steckbrief"><h3>Steckbrief</h3><dl class="paare">' +
+      zeilen.join('') + '</dl></section>';
+  }
+
+  function baueBefunde(bericht) {
+    const gruppen = new Map();
+    for (const b of bericht.befunde) {
+      if (!gruppen.has(b.kategorie)) gruppen.set(b.kategorie, []);
+      gruppen.get(b.kategorie).push(b);
+    }
+    if (!gruppen.size) return '';
+
+    let html = '<section class="abschnitt"><h3>Befunde im Einzelnen</h3>';
+    for (const [kategorie, liste] of gruppen) {
+      const wertend = liste.filter((b) => b.gewicht > 0).length;
+      html += '<div class="gruppe"><h4>' + sicher(KATEGORIE_TEXT[kategorie] || kategorie) +
+        '<span>' + (wertend ? wertend + ' von ' + liste.length + ' auffällig' : 'unauffällig') +
+        '</span></h4>';
+      for (const b of liste) {
+        html += '<article class="befund" data-schwere="' + sicher(b.schwere) + '">' +
+          '<div class="befund-kopf">' +
+          '<span class="plakette">' + sicher(SCHWERE_TEXT[b.schwere] || b.schwere) + '</span>' +
+          '<span class="befund-titel">' + sicher(b.titel) + '</span>' +
+          '</div>' +
+          '<p class="befund-warum">' + sicher(b.erklaerung) + '</p>';
+        if (b.beweis && b.beweis.length) {
+          html += '<ul class="beweise">' +
+            b.beweis.map((x) => '<li>' + sicher(x) + '</li>').join('') + '</ul>';
+        }
+        if (b.rat) html += '<p class="rat">' + sicher(b.rat) + '</p>';
+        html += '</article>';
+      }
+      html += '</div>';
+    }
+    return html + '</section>';
+  }
+
+  function zeichne(bericht, istBeispiel) {
+    const u = bericht.urteil;
+    let html = '';
+
+    if (istBeispiel) {
+      html += '<div class="beispielmarke"><b>Beispiel.</b> Das ist eine nachgebaute ' +
+        'Phishing-Mail, damit du siehst, was das Werkzeug tut. Füge oben deine eigene Mail ein.</div>';
+    }
+
+    html +=
+      '<section class="urteil" data-stufe="' + sicher(bericht.stufe) + '">' +
+      '<div class="streifen"></div>' +
+      '<div class="urteil-koerper">' +
+      '<div class="urteil-kopf"><h2>' + sicher(u.name) + '</h2></div>' +
+      '<p>' + sicher(u.text) + '</p>' +
+      '<div class="punktleiste">' +
+      '<div class="zahlen"><span>Risikopunkte</span><b>' + bericht.punkte + ' / 100</b></div>' +
+      '<div class="balken"><i style="width:' + Math.max(bericht.punkte, 2) + '%"></i></div>' +
+      '</div>' +
+      '<p class="aussagekraft"><b>Aussagekraft dieser Prüfung: ' +
+      sicher(bericht.sicherheit.stufe) + '.</b> ' + sicher(bericht.sicherheit.text) + '</p>' +
+      '</div></section>';
+
+    html += baueSteckbrief(bericht);
+
+    html += '<section class="abschnitt"><h3>Was du jetzt tun solltest</h3><ol class="schritte">' +
+      bericht.naechsteSchritte.map((s) => '<li><span>' + sicher(s) + '</span></li>').join('') +
+      '</ol></section>';
+
+    html += baueBefunde(bericht);
+
+    ziel.innerHTML = html;
+  }
+
+  function pruefe(istBeispiel) {
+    const roh = feld.value;
+    if (!roh.trim()) {
+      ziel.innerHTML = '<section class="urteil" data-stufe="gruen"><div class="streifen"></div>' +
+        '<div class="urteil-koerper"><h2>Nichts zu prüfen</h2>' +
+        '<p>Füge oben den Text der Mail ein — am besten den Originaltext samt Kopfzeilen.</p>' +
+        '</div></section>';
+      return;
+    }
+    try {
+      zeichne(analysiere(roh), istBeispiel);
+    } catch (fehler) {
+      ziel.innerHTML = '<section class="urteil" data-stufe="gelb"><div class="streifen"></div>' +
+        '<div class="urteil-koerper"><h2>Die Prüfung ist abgebrochen</h2>' +
+        '<p>Der eingefügte Text konnte nicht zerlegt werden: ' + sicher(fehler.message) +
+        '. Versuch es mit dem Originaltext der Mail statt mit einem Screenshot-Text.</p>' +
+        '</div></section>';
+    }
+  }
+
+  formular.addEventListener('submit', (e) => {
+    e.preventDefault();
+    pruefe(false);
+    ziel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  document.getElementById('beispiel-knopf').addEventListener('click', () => {
+    feld.value = BEISPIEL_MAIL;
+    pruefe(true);
+  });
+
+  document.getElementById('leeren-knopf').addEventListener('click', () => {
+    feld.value = '';
+    feld.focus();
+    ziel.innerHTML = '';
+  });
+
+  // Datei per Ziehen und Ablegen: .eml direkt einlesen.
+  feld.addEventListener('dragover', (e) => e.preventDefault());
+  feld.addEventListener('drop', (e) => {
+    const datei = e.dataTransfer && e.dataTransfer.files && e.dataTransfer.files[0];
+    if (!datei) return;
+    e.preventDefault();
+    const leser = new FileReader();
+    leser.onload = () => { feld.value = String(leser.result); pruefe(false); };
+    leser.readAsText(datei);
+  });
+
+  // Beim Laden mit dem Beispiel starten, damit sofort sichtbar ist, was das Werkzeug leistet.
+  feld.value = BEISPIEL_MAIL;
+  pruefe(true);
+})();
+</script>

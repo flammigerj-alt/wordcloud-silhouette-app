@@ -1,0 +1,36 @@
+Return-Path: <buchhaltung@lieferant-gmbh.de>
+Received: from unknown ([91.203.145.8])
+	by mx.provider.de with ESMTP id 8Kd91mQ
+	for <max.mustermann@firma.de>; Mon, 04 Aug 2025 09:21:44 +0200
+Authentication-Results: mx.provider.de;
+	spf=softfail smtp.mailfrom=lieferant-gmbh.de;
+	dkim=none;
+	dmarc=none header.from=lieferant-gmbh.de
+From: "Buchhaltung Lieferant GmbH" <buchhaltung@lieferant-gmbh.de>
+Reply-To: "Buchhaltung" <l.buchhaltung.zahlung@gmail.com>
+To: max.mustermann@firma.de
+Subject: AW: Offene Rechnung RE-2025-4471
+Date: Mon, 04 Aug 2025 09:21:40 +0200
+Message-ID: <a91f2@mailhost.unknown-relay.ru>
+MIME-Version: 1.0
+Content-Type: multipart/mixed; boundary="grenze-4471"
+
+--grenze-4471
+Content-Type: text/plain; charset=UTF-8
+
+Sehr geehrte Damen und Herren,
+
+anbei die offene Rechnung RE-2025-4471. Bitte beachten Sie, dass sich
+unsere Bankverbindung geaendert hat. Ueberweisen Sie den Betrag von
+8.450,00 EUR bitte ab sofort auf das neue Konto.
+
+Die Zahlung sollte umgehend erfolgen, da die Frist laeuft.
+
+--grenze-4471
+Content-Type: application/zip; name="Rechnung_RE-2025-4471.zip"
+Content-Disposition: attachment; filename="Rechnung_RE-2025-4471.zip"
+Content-Transfer-Encoding: base64
+
+UEsDBAoAAAAAAA==
+
+--grenze-4471--

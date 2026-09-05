@@ -1,0 +1,33 @@
+Return-Path: <bounce@newsletter.beispielverlag.de>
+Received: from mx1.beispielverlag.de ([194.25.134.80])
+	by mx.provider.de with ESMTPS id 2Ka81Lp
+	for <max.mustermann@provider.de>; Wed, 06 Aug 2025 10:02:11 +0200
+Authentication-Results: mx.provider.de;
+	spf=pass (sender IP is 194.25.134.80) smtp.mailfrom=beispielverlag.de;
+	dkim=pass header.d=beispielverlag.de;
+	dmarc=pass header.from=beispielverlag.de
+From: "Beispielverlag Kundenservice" <service@beispielverlag.de>
+To: max.mustermann@provider.de
+Subject: Ihre Bestellung 88213 wurde versandt
+Date: Wed, 06 Aug 2025 10:02:08 +0200
+Message-ID: <20250806100208.11a@beispielverlag.de>
+List-Unsubscribe: <https://beispielverlag.de/abmelden?id=88213>
+MIME-Version: 1.0
+Content-Type: text/plain; charset=UTF-8
+
+Hallo Max Mustermann,
+
+vielen Dank fuer Ihre Bestellung 88213. Das Paket hat heute unser Lager
+verlassen und sollte in zwei bis drei Werktagen bei Ihnen ankommen.
+
+Den Sendungsstatus finden Sie jederzeit in Ihrem Kundenkonto unter
+https://www.beispielverlag.de/kundenkonto - melden Sie sich dazu wie
+gewohnt selbst auf unserer Seite an.
+
+Bei Rueckfragen erreichen Sie uns unter 0381 1234567.
+
+Mit freundlichen Gruessen
+Ihr Team vom Beispielverlag
+
+Beispielverlag GmbH, Musterweg 3, 18055 Rostock
+Geschaeftsfuehrer: Erika Beispiel, HRB 12345
