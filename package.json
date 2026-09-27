@@ -1,7 +1,7 @@
 {
   "name": "phishing-check",
   "version": "1.0.0",
-  "description": "Offline-Prüfung verdächtiger E-Mails: Absender, Zustellweg, Links, Inhalt und Anhänge nach nachvollziehbaren, begründeten Regeln.",
+  "description": "Prüfung verdächtiger E-Mails und Webseiten: Absender, Zustellweg, Links, Inhalt und Anhänge nach nachvollziehbaren, begründeten Regeln. Mails bleiben offline; Webseiten werden nur auf Wunsch abgerufen.",
   "type": "module",
   "license": "MIT",
   "bin": {
@@ -10,7 +10,8 @@
   "scripts": {
     "test": "node --test test/*.test.js",
     "build": "node build.mjs",
-    "check": "node bin/cli.js"
+    "check": "node bin/cli.js",
+    "server": "node bin/server.js"
   },
   "engines": {
     "node": ">=18"
@@ -26,5 +27,9 @@
     "sicherheit",
     "deutsch",
     "offline"
-  ]
+  ],
+  "optionalDependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
+    "playwright": "^1.56.1"
+  }
 }

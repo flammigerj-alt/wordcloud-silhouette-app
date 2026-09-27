@@ -347,3 +347,170 @@ export const HOMOGLYPHS = {
   'ν': 'v', 'ο': 'o', 'ρ': 'p', 'α': 'a', 'ε': 'e', 'ι': 'i', 'κ': 'k',
   'τ': 't', 'υ': 'u', 'χ': 'x', 'һ': 'h',
 };
+
+/**
+ * Endungen, die nicht übermäßig missbraucht werden, aber billig, anonym und
+ * bei kurzlebigen Anlage- und Verdienstseiten auffällig häufig sind. Schwächer
+ * gewichtet als RISKY_TLDS - viele ehrliche Seiten nutzen sie auch.
+ */
+export const BILLIG_TLDS = new Set([
+  'online', 'site', 'website', 'store', 'space', 'fun', 'pw', 'cc', 'vip',
+  'club', 'pro', 'cloud', 'life', 'today', 'world', 'digital', 'finance',
+  'money', 'cash', 'investments', 'trade', 'exchange', 'app',
+]);
+
+/**
+ * Wortbestandteile, die in einem Domainnamen Geld versprechen. Als Muster statt
+ * als Wortliste, weil Domains Wörter zusammenziehen ("cashconnect") - und damit
+ * "earn" nicht in jedem "learn" anschlägt.
+ */
+export const GELD_KOEDER = [
+  { wort: 'cash', muster: /cash/ },
+  { wort: 'money', muster: /money/ },
+  { wort: 'geld', muster: /geld(?!ern)/ },
+  { wort: 'profit', muster: /profit/ },
+  { wort: 'invest', muster: /invest/ },
+  { wort: 'earn', muster: /(?<![lyh])earn/ },
+  { wort: 'verdienen', muster: /verdien/ },
+  { wort: 'gewinn', muster: /gewinn/ },
+  { wort: 'rendite', muster: /rendite/ },
+  { wort: 'bonus', muster: /bonus/ },
+  { wort: 'krypto', muster: /krypto|crypto/ },
+  { wort: 'bitcoin', muster: /bitcoin|btc/ },
+  { wort: 'trading', muster: /trading|trader|forex/ },
+  { wort: 'einkommen', muster: /income|einkommen/ },
+  { wort: 'auszahlung', muster: /payout|auszahlung|withdraw/ },
+  { wort: 'reichtum', muster: /wealth|reichtum|million(?:aer|är)/ },
+  { wort: 'zinsen', muster: /zinsen/ },
+];
+
+/**
+ * Signalwörter auf Webseiten, die Geld einsammeln: Anlagebetrug, Verdienst- und
+ * Schneeballsysteme. Gleiches Format wie CONTENT_SIGNALS.
+ */
+export const WEBSITE_SIGNALS = [
+  {
+    id: 'renditeversprechen',
+    titel: 'Garantierte oder unrealistisch hohe Rendite',
+    schwere: 'kritisch',
+    gewicht: 32,
+    erklaerung: 'Hohe Rendite ohne Risiko gibt es nicht. Prozente pro Tag oder pro Woche sind das Kennzeichen von Anlagebetrug und Schneeballsystemen - ausgezahlt wird dort anfangs nur aus dem Geld späterer Einzahler.',
+    rat: 'Zum Vergleich: Tagesgeld bringt wenige Prozent im Jahr. Wer ein Vielfaches davon garantiert, lügt. Kein Geld einzahlen.',
+    muster: [
+      /garantiert(?:e[nmrs]?)? (?:rendite|gewinne?|ertr(?:a|ä|ae)ge?|zinsen|auszahlung)/i,
+      /\d+(?:[.,]\d+)?\s*%\s*(?:rendite |gewinn |zinsen |profit |return )?(?:pro|am|im|je|jeden|per|a|every|each) (?:tag|woche|monat|day|week|month)\b/i,
+      /\d+(?:[.,]\d+)?\s*%\s*(?:t(?:a|ä|ae)glich|w(?:o|ö|oe)chentlich|daily|weekly)/i,
+      /t(?:a|ä|ae)glich(?:e[nmrs]?)? (?:rendite|gewinne?|ertr(?:a|ä|ae)ge?|zinsen|auszahlung)/i,
+      /\brisikofrei\b/i, /ohne (?:jedes |jegliches )?risiko/i, /kein(?:erlei)? verlustrisiko/i,
+      /(?:verdoppeln|verdreifachen|vervielfachen) sie (?:ihr|ihre|dein)/i, /geld (?:verdoppeln|vermehren)/i,
+      /guaranteed (?:returns?|profits?|income|payouts?)/i, /daily (?:returns?|profits?|interest|roi)/i,
+      /risk[- ]free/i, /double your (?:money|investment|bitcoin)/i, /\bno risk\b/i,
+    ],
+  },
+  {
+    id: 'schnellgeld',
+    titel: 'Versprechen von schnellem, mühelosem Geld',
+    schwere: 'hoch',
+    gewicht: 22,
+    erklaerung: 'Verdienstseiten locken mit Einkommen ohne Arbeit und ohne Vorkenntnisse. Verdient wird dort an den Gebühren und Einzahlungen der Angelockten.',
+    rat: 'Frag dich, wovon der Betreiber lebt, wenn er dir Geld fürs Nichtstun zahlt. Meist lautet die Antwort: von deiner Einzahlung.',
+    muster: [
+      /passive[ns]? einkommen/i, /(?:von zu ?hause|nebenbei|vom sofa)(?: aus)? (?:geld )?verdienen/i,
+      /\d[\d.,]*\s*(?:€|euro|eur|\$|dollar)\s*(?:pro|am|jeden|im|per|a|every)\s*(?:tag|woche|monat|day|week|month)/i,
+      /schnell(?:es geld| reich)/i, /finanzielle (?:freiheit|unabh(?:a|ä|ae)ngigkeit)/i,
+      /ohne (?:vor)?kenntnisse/i, /keine (?:erfahrung|vorkenntnisse) (?:n(?:o|ö|oe)tig|erforderlich)/i,
+      /nur (?:wenige|\d+) minuten (?:am|pro) tag/i, /automatisch(?:e[ns]?)? (?:geld|gewinne?|einkommen)/i,
+      /\bpassive income\b/i, /(?:earn|make) (?:money|cash) (?:fast|online|from home|daily)/i,
+      /make \$?\d[\d,]* (?:a|per) (?:day|week)/i, /\bget rich\b/i, /no experience (?:needed|required)/i,
+    ],
+  },
+  {
+    id: 'einzahlung',
+    titel: 'Erst Geld einzahlen, dann verdienen',
+    schwere: 'hoch',
+    gewicht: 24,
+    erklaerung: 'Das Grundmuster fast jedes Anlage- und Verdienstbetrugs: Um an Gewinne zu kommen, musst du zuerst Geld überweisen - und oft vor jeder Auszahlung noch einmal "Gebühren" oder "Steuern".',
+    rat: 'Nie Geld einzahlen, um "freigeschaltet" zu werden, und nie Gebühren zahlen, um eigenes Geld zurückzubekommen. Wer das verlangt, zahlt nicht aus.',
+    muster: [
+      /mindest(?:einzahlung|einlage|investition)/i, /einzahlung (?:ab|von mindestens)/i,
+      /(?:startkapital|einstiegskapital) (?:von|ab)/i, /investieren sie (?:nur|schon|bereits) (?:ab )?\d/i,
+      /konto (?:aufladen|aufstocken)/i, /(?:auszahlung|abhebung)s?geb(?:u|ü|ue)hr/i,
+      /geb(?:u|ü|ue)hr(?:en)? (?:vor|f(?:u|ü|ue)r) (?:die |der )?(?:auszahlung|freigabe|abhebung)/i,
+      /(?:steuer|freischaltung|verifizierungsgeb(?:u|ü|ue)hr)[\w ]{0,20}vor (?:der )?auszahlung/i,
+      /auszahlung (?:erst|nur) (?:nach|ab|wenn)/i,
+      /minimum deposit/i, /deposit (?:now|from|at least|\$?\d)/i, /withdrawal (?:fee|tax)/i,
+      /pay (?:a|the) (?:fee|tax) (?:to|before) (?:withdraw|unlock)/i,
+    ],
+  },
+  {
+    id: 'schneeball',
+    titel: 'Provision für das Anwerben weiterer Einzahler',
+    schwere: 'hoch',
+    gewicht: 26,
+    erklaerung: 'Werden Gewinne vor allem dafür gezahlt, neue Mitglieder zu werben, trägt sich das System nur, solange Neue einzahlen. Das ist das Bauprinzip eines Schneeballsystems.',
+    rat: 'Wenn du mehr am Werben als an einem echten Produkt verdienst, bist du Teil eines Schneeballsystems - und die Späteren verlieren ihr Geld.',
+    muster: [
+      /empfehlungs(?:provision|bonus|pr(?:a|ä|ae)mie)/i, /werben sie (?:freunde|mitglieder|neue)/i,
+      /(?:provision|bonus) (?:f(?:u|ü|ue)r )?jede[nr]? (?:geworbene|neue|empfohlene)/i,
+      /\b\d+\s*(?:provisions)?ebenen\b/i, /(?:provision|bonus|verg(?:u|ü|ue)tung)[\w ]{0,20}\b\d+\s*(?:level|stufen)\b/i,
+      /\bteam[- ]?(?:bonus|provision)\b/i,
+      /\bdownline\b/i, /\bupline\b/i, /\bmlm\b/i, /multi[- ]?level/i, /network[- ]?marketing/i,
+      /referral (?:bonus|commission|reward)/i, /refer (?:a friend|friends) and earn/i,
+    ],
+  },
+  {
+    id: 'kryptozahlung',
+    titel: 'Einzahlung per Krypto oder Guthabenkarte',
+    schwere: 'hoch',
+    gewicht: 22,
+    erklaerung: 'Krypto-Überweisungen und Guthabenkarten lassen sich nicht zurückholen. Deshalb bestehen Betrugsplattformen darauf.',
+    rat: 'Seriöse, beaufsichtigte Anbieter nehmen Überweisungen auf ein Konto im eigenen Namen an. Eine Wallet-Adresse zum Einzahlen ist ein Alarmzeichen.',
+    muster: [
+      /\busdt\b/i, /\btether\b/i, /\btrc-?20\b/i, /\berc-?20\b/i, /\bbep-?20\b/i,
+      /wallet[- ]?adresse/i, /wallet address/i, /(?:in|per|mit) (?:bitcoin|btc|krypto|crypto)(?:w(?:a|ä|ae)hrung)? (?:einzahlen|zahlen|bezahlen)/i,
+      /\bpaysafecard\b/i, /\bguthabenkarte\b/i, /gift ?card/i,
+    ],
+  },
+  {
+    id: 'promi',
+    titel: 'Werbung mit Prominenten oder bekannten Sendungen',
+    schwere: 'hoch',
+    gewicht: 24,
+    erklaerung: 'Gefälschte Empfehlungen von Prominenten oder angebliche Fernsehauftritte sind ein Markenzeichen betrügerischer Krypto- und Anlageplattformen. Die Genannten wissen davon nichts.',
+    rat: 'Kein Prominenter empfiehlt ernsthaft eine Plattform mit garantierten Gewinnen. Solche Anzeigen und Seiten sind gefälscht.',
+    muster: [
+      /h(?:o|ö|oe)hle der l(?:o|ö|oe)wen/i, /\bdhdl\b/i, /\bshark tank\b/i, /\bdragons'? den\b/i,
+      /g(?:u|ü|ue)nther jauch/i, /dieter bohlen/i, /carsten maschmeyer/i, /frank thelen/i,
+      /ralf d(?:u|ü|ue)mmel/i, /judith williams/i, /elon musk/i, /thomas gottschalk/i,
+      /wie (?:im|bei|in) (?:der )?(?:tv|fernsehen|sendung) (?:gesehen|bekannt)/i, /as seen on tv/i,
+    ],
+  },
+  {
+    id: 'fernzugriff',
+    titel: 'Fernwartungsprogramm oder persönlicher "Berater"',
+    schwere: 'kritisch',
+    gewicht: 30,
+    erklaerung: 'Betrugsplattformen stellen dir einen "Broker" oder "Berater" zur Seite, der dich per Telefon oder Messenger zu immer höheren Einzahlungen drängt - oft mit AnyDesk oder TeamViewer direkt auf deinem Rechner.',
+    rat: 'Niemals einer fremden Person Fernzugriff auf deinen Rechner geben. Kein seriöser Anlageberater braucht das.',
+    muster: [
+      /\banydesk\b/i, /\bteamviewer\b/i, /\bfernwartung\b/i, /\bfernzugriff\b/i,
+      /(?:ihr|dein|einen?) pers(?:o|ö|oe)nliche[rn]? (?:broker|berater|finanzberater|account[- ]?manager|kontomanager|mentor|coach)/i,
+      /(?:berater|broker|manager) (?:wird sich|meldet sich|ruft sie)/i,
+      /personal (?:broker|account manager|mentor)/i, /\bremote access\b/i,
+    ],
+  },
+  {
+    id: 'knappheit',
+    titel: 'Künstliche Knappheit und Zeitdruck',
+    schwere: 'mittel',
+    gewicht: 14,
+    erklaerung: 'Countdown, "nur noch wenige Plätze" und "nur heute" sollen dich zur Anmeldung drängen, bevor du nachprüfst.',
+    rat: 'Eine echte Geldanlage läuft dir nicht davon. Je mehr Eile, desto mehr Grund, erst einmal nichts zu tun.',
+    muster: [
+      /nur noch \d+ (?:freie )?(?:pl(?:a|ä|ae)tze|zug(?:a|ä|ae)nge|pl(?:a|ä|ae)tze frei)/i,
+      /(?:angebot|aktion|anmeldung) (?:endet|l(?:a|ä|ae)uft ab)/i, /nur (?:noch )?heute/i,
+      /\bbegrenzte (?:pl(?:a|ä|ae)tze|teilnehmerzahl|pl(?:a|ä|ae)tze)\b/i,
+      /only \d+ (?:spots?|places?|seats?) left/i, /limited (?:spots|time offer|places)/i, /offer ends/i,
+    ],
+  },
+];

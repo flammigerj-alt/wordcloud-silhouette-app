@@ -21,6 +21,7 @@ const MODULE = [
   'src/rules/links.js',
   'src/rules/content.js',
   'src/rules/attachments.js',
+  'src/rules/website.js',
   'src/analyzer.js',
 ];
 
@@ -70,13 +71,18 @@ function umschliesse(pfad) {
 }
 
 const gebuendelt = MODULE.map(umschliesse).join('\n');
-const zugang = `const { analysiere, STUFEN, SCHWEREN } = ${raumname('src/analyzer.js')};`;
+const zugang = `const { analysiere, analysiereAdresse, STUFEN, SCHWEREN } = ${raumname('src/analyzer.js')};`;
 
 const vorlage = readFileSync(resolve(WURZEL, 'web/vorlage.html'), 'utf8');
 const beispiel = readFileSync(resolve(WURZEL, 'beispiele/phishing-bank.eml'), 'utf8');
+const beispielSeite = readFileSync(resolve(WURZEL, 'beispiele/anlagebetrug-seite.txt'), 'utf8');
 
 const kern = `${gebuendelt}\n${zugang}\n`;
-const beispielJs = `const BEISPIEL_MAIL = ${JSON.stringify(beispiel)};\n`;
+const beispielJs = [
+  `const BEISPIEL_MAIL = ${JSON.stringify(beispiel)};`,
+  `const BEISPIEL_SEITE = ${JSON.stringify({ adresse: 'https://www.renditeturbo-beispiel.online/start', text: beispielSeite })};`,
+  '',
+].join('\n');
 
 const seite = vorlage
   .replace('/* __PRUEFKERN__ */', () => kern)

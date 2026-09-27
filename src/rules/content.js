@@ -16,7 +16,7 @@ function befund(id, schwere, gewicht, titel, erklaerung, beweis, rat) {
 }
 
 /** Die Fundstelle mitsamt etwas Umgebung zeigen, damit die Bewertung nachvollziehbar bleibt. */
-function fundstelle(text, treffer) {
+export function fundstelle(text, treffer) {
   const index = text.toLowerCase().indexOf(String(treffer).toLowerCase());
   if (index === -1) return kuerzen(treffer, 120);
   const start = Math.max(0, index - 45);
@@ -24,6 +24,37 @@ function fundstelle(text, treffer) {
   const prefix = start > 0 ? '...' : '';
   const suffix = ende < text.length ? '...' : '';
   return `${prefix}${kuerzen(text.slice(start, ende), 160)}${suffix}`;
+}
+
+/**
+ * Signalgruppen gegen einen Text prüfen. Jede Gruppe ergibt höchstens einen
+ * Befund, mit den Fundstellen als Beweis.
+ */
+export function werteSignale(text, signale, praefix, kategorie) {
+  const befunde = [];
+  for (const signal of signale) {
+    const treffer = [];
+    for (const muster of signal.muster) {
+      const gefunden = text.match(muster);
+      if (gefunden) treffer.push(gefunden[0]);
+      if (treffer.length >= 4) break;
+    }
+    if (!treffer.length) continue;
+
+    // Mehrere unabhängige Treffer einer Gruppe wiegen etwas schwerer.
+    const zuschlag = Math.min(treffer.length - 1, 2) * 3;
+    befunde.push({
+      id: `${praefix}-${signal.id}`,
+      kategorie,
+      schwere: signal.schwere,
+      gewicht: signal.gewicht + zuschlag,
+      titel: signal.titel,
+      erklaerung: signal.erklaerung,
+      beweis: [...new Set(treffer)].map((t) => fundstelle(text, t)),
+      rat: signal.rat,
+    });
+  }
+  return befunde;
 }
 
 export function pruefeInhalt(mail) {
@@ -42,24 +73,7 @@ export function pruefeInhalt(mail) {
     )];
   }
 
-  for (const signal of CONTENT_SIGNALS) {
-    const treffer = [];
-    for (const muster of signal.muster) {
-      const gefunden = gesamt.match(muster);
-      if (gefunden) treffer.push(gefunden[0]);
-      if (treffer.length >= 4) break;
-    }
-    if (!treffer.length) continue;
-
-    // Mehrere unabhängige Treffer einer Gruppe wiegen etwas schwerer.
-    const zuschlag = Math.min(treffer.length - 1, 2) * 3;
-    befunde.push(befund(
-      `inhalt-${signal.id}`, signal.schwere, signal.gewicht + zuschlag,
-      signal.titel, signal.erklaerung,
-      [...new Set(treffer)].map((t) => fundstelle(gesamt, t)),
-      signal.rat,
-    ));
-  }
+  befunde.push(...werteSignale(gesamt, CONTENT_SIGNALS, 'inhalt', KAT));
 
   // Anrede: steht der eigene Name überhaupt drin?
   const empfaenger = parseAddressList(mail.header('to'))[0];
