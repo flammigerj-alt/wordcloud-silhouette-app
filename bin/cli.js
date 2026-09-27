@@ -5,11 +5,12 @@
  *   node bin/cli.js verdächtig.eml
  *   cat mail.eml | node bin/cli.js
  *   node bin/cli.js mail.eml --json
+ *   node bin/cli.js --url beispiel.online [--seite seitentext.txt]
  *
  * Es werden keinerlei Daten verschickt - alles läuft lokal, ohne Netzwerk.
  */
 import { readFileSync } from 'node:fs';
-import { analysiere } from '../src/analyzer.js';
+import { analysiere, analysiereAdresse } from '../src/analyzer.js';
 
 const ESC = String.fromCharCode(27);
 const FARBEN = {
@@ -62,7 +63,7 @@ function drucke(bericht) {
   const linie = '-'.repeat(breite);
 
   console.log('');
-  console.log(f('fett', 'PHISHING-PRÜFUNG'));
+  console.log(f('fett', bericht.art === 'adresse' ? 'WEBSEITEN-PRÜFUNG' : 'PHISHING-PRÜFUNG'));
   console.log(linie);
   console.log(`${f('fett', 'Urteil:')}       ${f(STUFEN_FARBE[bericht.stufe], f('fett', bericht.urteil.name.toUpperCase()))}  (${bericht.punkte}/100 Risikopunkte)`);
   console.log(`${f('fett', 'Aussagekraft:')} ${bericht.sicherheit.stufe}`);
@@ -70,7 +71,19 @@ function drucke(bericht) {
   console.log('');
   console.log(umbruch(bericht.urteil.text, breite, ''));
 
-  if (bericht.kopf.istMail) {
+  if (bericht.art === 'adresse') {
+    const a = bericht.adresse;
+    console.log('');
+    console.log(f('fett', 'Geprüfte Adresse'));
+    console.log(`  Eingabe:    ${a.eingabe || '(leer)'}`);
+    if (a.domain) console.log(`  Domain:     ${a.domain}`);
+    if (a.host && a.host !== a.domain) console.log(`  Host:       ${a.host}`);
+    if (a.verschluesselt !== null) {
+      console.log(`  Verbindung: ${a.verschluesselt ? 'https' : 'http (unverschlüsselt)'}${a.schemaAngenommen ? ' (angenommen)' : ''}`);
+    }
+  }
+
+  if (bericht.kopf?.istMail) {
     console.log('');
     console.log(f('fett', 'Absender'));
     if (bericht.absender.anzeigename) console.log(`  Angezeigt:  ${bericht.absender.anzeigename}`);
@@ -120,6 +133,12 @@ function main() {
       '  cat mail.eml | node bin/cli.js   Von der Standardeingabe lesen',
       '  node bin/cli.js <datei> --json   Ergebnis als JSON ausgeben',
       '',
+      '  node bin/cli.js --url <adresse>                     Webadresse prüfen',
+      '  node bin/cli.js --url <adresse> --seite <datei>     samt kopiertem Seitentext',
+      '',
+      'Die Webseite wird dabei nicht aufgerufen. Geprüft werden die Adresse und,',
+      'falls angegeben, der Text, den du selbst von der Seite kopiert hast.',
+      '',
       'Rückgabewert: 0 unauffällig, 1 verdächtig, 2 sehr wahrscheinlich Betrug.',
       'Am aussagekräftigsten ist die Prüfung mit dem vollständigen Original-Header.',
       'Wie du an den kommst, steht in der README.',
@@ -129,16 +148,42 @@ function main() {
   }
 
   const alsJson = argumente.includes('--json');
-  const pfad = argumente.find((a) => !a.startsWith('-'));
-  const roh = leseEingabe(pfad);
+  const wert = (schalter) => {
+    const i = argumente.indexOf(schalter);
+    return i === -1 ? undefined : (argumente[i + 1] ?? '');
+  };
+  const url = wert('--url');
+  const seite = wert('--seite');
 
-  if (!roh.trim()) {
-    console.error('Keine Eingabe. Bitte eine Datei angeben oder die Mail über die Standardeingabe hineingeben.');
-    process.exitCode = 2;
-    return;
+  let bericht;
+  if (url !== undefined) {
+    if (!url.trim() || url.startsWith('-')) {
+      console.error('Hinter --url fehlt die Adresse, z. B. --url beispiel.online');
+      process.exitCode = 2;
+      return;
+    }
+    let seitentext = '';
+    if (seite) {
+      try {
+        seitentext = readFileSync(seite, 'utf8');
+      } catch {
+        console.error(`Seitentext nicht lesbar: ${seite}`);
+        process.exitCode = 2;
+        return;
+      }
+    }
+    bericht = analysiereAdresse(url, seitentext);
+  } else {
+    const pfad = argumente.find((a) => !a.startsWith('-'));
+    const roh = leseEingabe(pfad);
+    if (!roh.trim()) {
+      console.error('Keine Eingabe. Bitte eine Datei angeben oder die Mail über die Standardeingabe hineingeben.');
+      process.exitCode = 2;
+      return;
+    }
+    bericht = analysiere(roh);
   }
 
-  const bericht = analysiere(roh);
   if (alsJson) console.log(JSON.stringify(bericht, null, 2));
   else drucke(bericht);
 

@@ -191,6 +191,43 @@ button.haupt {
 }
 button.haupt:hover { opacity: .87; background: var(--tinte); }
 .hinweiszeile { font-size: .87rem; color: var(--tinte-still); margin: 0; }
+.eingabe[hidden] { display: none; }
+input[type="text"] {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--flaeche);
+  color: var(--tinte);
+  border: 1px solid var(--kante);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: .9rem;
+}
+input[type="text"]:focus-visible {
+  outline: 2px solid var(--stahl);
+  outline-offset: 2px;
+}
+#seitentext { min-height: 160px; }
+
+/* Umschalter zwischen Mail- und Webseitenprüfung */
+.modus {
+  display: inline-flex; gap: 0;
+  margin-bottom: 16px;
+  border: 1px solid var(--kante);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.modus button {
+  border: 0; border-radius: 0;
+  padding: 9px 18px;
+  font-size: .9rem;
+  background: var(--flaeche);
+  color: var(--tinte-leise);
+}
+.modus button + button { border-left: 1px solid var(--kante); }
+.modus button[aria-selected="true"] {
+  background: var(--stahl-hell);
+  color: var(--tinte);
+}
 
 /* ---------------------------------------------------------------
    Urteil
@@ -462,7 +499,8 @@ summary:hover { background: var(--flaeche-tief); }
     <p>
       Fügt man den Originaltext einer E-Mail ein, prüft dieses Werkzeug Absender, Zustellweg,
       Links, Formulierungen und Anhänge gegen die Muster, die bei Phishing immer wieder auftauchen —
-      und begründet jeden einzelnen Punkt, statt nur eine Zahl auszuwerfen.
+      und begründet jeden einzelnen Punkt, statt nur eine Zahl auszuwerfen. Webadressen, etwa von
+      Anlage- oder Verdienstseiten, lassen sich genauso prüfen.
     </p>
     <div class="vertraulich">
       <span aria-hidden="true">&#9679;</span>
@@ -470,7 +508,12 @@ summary:hover { background: var(--flaeche-tief); }
     </div>
   </header>
 
-  <form class="eingabe" id="formular">
+  <div class="modus" role="tablist" aria-label="Was möchtest du prüfen?">
+    <button type="button" role="tab" id="modus-mail" aria-selected="true" aria-controls="formular">E-Mail</button>
+    <button type="button" role="tab" id="modus-web" aria-selected="false" aria-controls="formular-web">Webseite</button>
+  </div>
+
+  <form class="eingabe" id="formular" role="tabpanel" aria-labelledby="modus-mail">
     <label for="quelle">E-Mail einfügen — am besten als Originaltext mit Kopfzeilen</label>
     <textarea id="quelle" spellcheck="false" aria-describedby="eingabe-hinweis"></textarea>
     <div class="knopfreihe">
@@ -481,6 +524,24 @@ summary:hover { background: var(--flaeche-tief); }
     <p class="hinweiszeile" id="eingabe-hinweis">
       Reiner Text geht auch — aber ohne Kopfzeilen fehlen die aussagekräftigsten Merkmale.
       Wie du an den Originaltext kommst, steht weiter unten.
+    </p>
+  </form>
+
+  <form class="eingabe" id="formular-web" role="tabpanel" aria-labelledby="modus-web" hidden>
+    <label for="adresse">Webadresse</label>
+    <input type="text" id="adresse" inputmode="url" autocomplete="off" autocapitalize="off"
+      spellcheck="false" placeholder="z. B. beispiel.online oder https://www.beispiel.de/start">
+    <label for="seitentext">Text der Seite — optional, aber aussagekräftiger</label>
+    <textarea id="seitentext" spellcheck="false" aria-describedby="web-hinweis"></textarea>
+    <div class="knopfreihe">
+      <button type="submit" class="haupt">Prüfen</button>
+      <button type="button" id="web-beispiel-knopf">Beispiel laden</button>
+      <button type="button" id="web-leeren-knopf">Leeren</button>
+    </div>
+    <p class="hinweiszeile" id="web-hinweis">
+      Die Seite wird nicht aufgerufen. Öffne sie selbst, markiere alles mit Strg+A, kopiere es mit
+      Strg+C und füge es hier ein — dann prüft das Werkzeug auch Versprechen, Einzahlungsbedingungen
+      und Impressum.
     </p>
   </form>
 
@@ -749,6 +810,11 @@ summary:hover { background: var(--flaeche-tief); }
   const feld = document.getElementById('quelle');
   const ziel = document.getElementById('ergebnis');
   const formular = document.getElementById('formular');
+  const formularWeb = document.getElementById('formular-web');
+  const adressfeld = document.getElementById('adresse');
+  const seitenfeld = document.getElementById('seitentext');
+  const reiterMail = document.getElementById('modus-mail');
+  const reiterWeb = document.getElementById('modus-web');
 
   const SCHWERE_TEXT = {
     kritisch: 'Kritisch',
@@ -765,13 +831,29 @@ summary:hover { background: var(--flaeche-tief); }
     Inhalt: 'Formulierungen',
     'Anhänge': 'Anhänge',
     Technik: 'Technische Herkunft',
+    Adresse: 'Adresse',
+    Seiteninhalt: 'Inhalt der Seite',
   };
 
   const sicher = (wert) => String(wert ?? '').replace(/[&<>"']/g, (z) => (
     { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[z]
   ));
 
+  function baueAdressbrief(bericht) {
+    const a = bericht.adresse;
+    if (!a.domain) return '';
+    const paar = (dt, dd, warnen) => '<div class="paar"><dt>' + sicher(dt) + '</dt><dd' +
+      (warnen ? ' class="warn"' : '') + '>' + sicher(dd) + '</dd></div>';
+    let zeilen = paar('Registrierbare Domain', a.domain);
+    if (a.host !== a.domain) zeilen += paar('Vollständiger Name', a.host);
+    zeilen += paar('Verbindung', a.verschluesselt
+      ? 'https' + (a.schemaAngenommen ? ' (angenommen)' : '')
+      : 'http, unverschlüsselt', !a.verschluesselt);
+    return '<section class="steckbrief"><h3>Steckbrief</h3><dl class="paare">' + zeilen + '</dl></section>';
+  }
+
   function baueSteckbrief(bericht) {
+    if (bericht.art === 'adresse') return baueAdressbrief(bericht);
     if (!bericht.kopf.istMail) return '';
     const a = bericht.absender;
     const zeilen = [];
@@ -837,8 +919,11 @@ summary:hover { background: var(--flaeche-tief); }
     let html = '';
 
     if (istBeispiel) {
-      html += '<div class="beispielmarke"><b>Beispiel.</b> Das ist eine nachgebaute ' +
-        'Phishing-Mail, damit du siehst, was das Werkzeug tut. Füge oben deine eigene Mail ein.</div>';
+      html += bericht.art === 'adresse'
+        ? '<div class="beispielmarke"><b>Beispiel.</b> Das ist eine erfundene Anlagebetrugs-' +
+          'Seite, damit du siehst, was das Werkzeug tut. Trag oben deine eigene Adresse ein.</div>'
+        : '<div class="beispielmarke"><b>Beispiel.</b> Das ist eine nachgebaute ' +
+          'Phishing-Mail, damit du siehst, was das Werkzeug tut. Füge oben deine eigene Mail ein.</div>';
     }
 
     html +=
@@ -866,13 +951,32 @@ summary:hover { background: var(--flaeche-tief); }
     ziel.innerHTML = html;
   }
 
+  function nichtsZuPruefen(text) {
+    ziel.innerHTML = '<section class="urteil" data-stufe="gruen"><div class="streifen"></div>' +
+      '<div class="urteil-koerper"><h2>Nichts zu prüfen</h2>' +
+      '<p>' + sicher(text) + '</p>' +
+      '</div></section>';
+  }
+
+  function pruefeWeb(istBeispiel) {
+    const adresse = adressfeld.value;
+    if (!adresse.trim()) {
+      nichtsZuPruefen('Trag oben die Webadresse ein — am besten direkt aus der Adresszeile des Browsers kopiert.');
+      return;
+    }
+    try {
+      zeichne(analysiereAdresse(adresse, seitenfeld.value), istBeispiel);
+    } catch (fehler) {
+      ziel.innerHTML = '<section class="urteil" data-stufe="gelb"><div class="streifen"></div>' +
+        '<div class="urteil-koerper"><h2>Die Prüfung ist abgebrochen</h2>' +
+        '<p>' + sicher(fehler.message) + '</p></div></section>';
+    }
+  }
+
   function pruefe(istBeispiel) {
     const roh = feld.value;
     if (!roh.trim()) {
-      ziel.innerHTML = '<section class="urteil" data-stufe="gruen"><div class="streifen"></div>' +
-        '<div class="urteil-koerper"><h2>Nichts zu prüfen</h2>' +
-        '<p>Füge oben den Text der Mail ein — am besten den Originaltext samt Kopfzeilen.</p>' +
-        '</div></section>';
+      nichtsZuPruefen('Füge oben den Text der Mail ein — am besten den Originaltext samt Kopfzeilen.');
       return;
     }
     try {
@@ -900,6 +1004,42 @@ summary:hover { background: var(--flaeche-tief); }
   document.getElementById('leeren-knopf').addEventListener('click', () => {
     feld.value = '';
     feld.focus();
+    ziel.innerHTML = '';
+  });
+
+  function waehleModus(web) {
+    reiterMail.setAttribute('aria-selected', String(!web));
+    reiterWeb.setAttribute('aria-selected', String(web));
+    formular.hidden = web;
+    formularWeb.hidden = !web;
+    ziel.innerHTML = '';
+    if (web) {
+      if (adressfeld.value.trim()) pruefeWeb(adressfeld.value === BEISPIEL_SEITE.adresse);
+      else { adressfeld.focus(); }
+    } else if (feld.value.trim()) {
+      pruefe(feld.value === BEISPIEL_MAIL);
+    }
+  }
+
+  reiterMail.addEventListener('click', () => waehleModus(false));
+  reiterWeb.addEventListener('click', () => waehleModus(true));
+
+  formularWeb.addEventListener('submit', (e) => {
+    e.preventDefault();
+    pruefeWeb(false);
+    ziel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  document.getElementById('web-beispiel-knopf').addEventListener('click', () => {
+    adressfeld.value = BEISPIEL_SEITE.adresse;
+    seitenfeld.value = BEISPIEL_SEITE.text;
+    pruefeWeb(true);
+  });
+
+  document.getElementById('web-leeren-knopf').addEventListener('click', () => {
+    adressfeld.value = '';
+    seitenfeld.value = '';
+    adressfeld.focus();
     ziel.innerHTML = '';
   });
 

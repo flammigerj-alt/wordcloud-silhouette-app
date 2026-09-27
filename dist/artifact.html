@@ -191,6 +191,43 @@ button.haupt {
 }
 button.haupt:hover { opacity: .87; background: var(--tinte); }
 .hinweiszeile { font-size: .87rem; color: var(--tinte-still); margin: 0; }
+.eingabe[hidden] { display: none; }
+input[type="text"] {
+  width: 100%;
+  padding: 12px 16px;
+  background: var(--flaeche);
+  color: var(--tinte);
+  border: 1px solid var(--kante);
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-size: .9rem;
+}
+input[type="text"]:focus-visible {
+  outline: 2px solid var(--stahl);
+  outline-offset: 2px;
+}
+#seitentext { min-height: 160px; }
+
+/* Umschalter zwischen Mail- und Webseitenprüfung */
+.modus {
+  display: inline-flex; gap: 0;
+  margin-bottom: 16px;
+  border: 1px solid var(--kante);
+  border-radius: 4px;
+  overflow: hidden;
+}
+.modus button {
+  border: 0; border-radius: 0;
+  padding: 9px 18px;
+  font-size: .9rem;
+  background: var(--flaeche);
+  color: var(--tinte-leise);
+}
+.modus button + button { border-left: 1px solid var(--kante); }
+.modus button[aria-selected="true"] {
+  background: var(--stahl-hell);
+  color: var(--tinte);
+}
 
 /* ---------------------------------------------------------------
    Urteil
@@ -462,7 +499,8 @@ summary:hover { background: var(--flaeche-tief); }
     <p>
       Fügt man den Originaltext einer E-Mail ein, prüft dieses Werkzeug Absender, Zustellweg,
       Links, Formulierungen und Anhänge gegen die Muster, die bei Phishing immer wieder auftauchen —
-      und begründet jeden einzelnen Punkt, statt nur eine Zahl auszuwerfen.
+      und begründet jeden einzelnen Punkt, statt nur eine Zahl auszuwerfen. Webadressen, etwa von
+      Anlage- oder Verdienstseiten, lassen sich genauso prüfen.
     </p>
     <div class="vertraulich">
       <span aria-hidden="true">&#9679;</span>
@@ -470,7 +508,12 @@ summary:hover { background: var(--flaeche-tief); }
     </div>
   </header>
 
-  <form class="eingabe" id="formular">
+  <div class="modus" role="tablist" aria-label="Was möchtest du prüfen?">
+    <button type="button" role="tab" id="modus-mail" aria-selected="true" aria-controls="formular">E-Mail</button>
+    <button type="button" role="tab" id="modus-web" aria-selected="false" aria-controls="formular-web">Webseite</button>
+  </div>
+
+  <form class="eingabe" id="formular" role="tabpanel" aria-labelledby="modus-mail">
     <label for="quelle">E-Mail einfügen — am besten als Originaltext mit Kopfzeilen</label>
     <textarea id="quelle" spellcheck="false" aria-describedby="eingabe-hinweis"></textarea>
     <div class="knopfreihe">
@@ -481,6 +524,24 @@ summary:hover { background: var(--flaeche-tief); }
     <p class="hinweiszeile" id="eingabe-hinweis">
       Reiner Text geht auch — aber ohne Kopfzeilen fehlen die aussagekräftigsten Merkmale.
       Wie du an den Originaltext kommst, steht weiter unten.
+    </p>
+  </form>
+
+  <form class="eingabe" id="formular-web" role="tabpanel" aria-labelledby="modus-web" hidden>
+    <label for="adresse">Webadresse</label>
+    <input type="text" id="adresse" inputmode="url" autocomplete="off" autocapitalize="off"
+      spellcheck="false" placeholder="z. B. beispiel.online oder https://www.beispiel.de/start">
+    <label for="seitentext">Text der Seite — optional, aber aussagekräftiger</label>
+    <textarea id="seitentext" spellcheck="false" aria-describedby="web-hinweis"></textarea>
+    <div class="knopfreihe">
+      <button type="submit" class="haupt">Prüfen</button>
+      <button type="button" id="web-beispiel-knopf">Beispiel laden</button>
+      <button type="button" id="web-leeren-knopf">Leeren</button>
+    </div>
+    <p class="hinweiszeile" id="web-hinweis">
+      Die Seite wird nicht aufgerufen. Öffne sie selbst, markiere alles mit Strg+A, kopiere es mit
+      Strg+C und füge es hier ein — dann prüft das Werkzeug auch Versprechen, Einzahlungsbedingungen
+      und Impressum.
     </p>
   </form>
 
@@ -1091,7 +1152,174 @@ const __M_data_js = (() => {
     'ν': 'v', 'ο': 'o', 'ρ': 'p', 'α': 'a', 'ε': 'e', 'ι': 'i', 'κ': 'k',
     'τ': 't', 'υ': 'u', 'χ': 'x', 'һ': 'h',
   };
-  return { IMPERSONATED_BRANDS, FREEMAIL_DOMAINS, DISPOSABLE_DOMAINS, URL_SHORTENERS, RISKY_TLDS, EXTENSION_RISK, CONTENT_SIGNALS, HOMOGLYPHS };
+  
+  /**
+   * Endungen, die nicht übermäßig missbraucht werden, aber billig, anonym und
+   * bei kurzlebigen Anlage- und Verdienstseiten auffällig häufig sind. Schwächer
+   * gewichtet als RISKY_TLDS - viele ehrliche Seiten nutzen sie auch.
+   */
+  const BILLIG_TLDS = new Set([
+    'online', 'site', 'website', 'store', 'space', 'fun', 'pw', 'cc', 'vip',
+    'club', 'pro', 'cloud', 'life', 'today', 'world', 'digital', 'finance',
+    'money', 'cash', 'investments', 'trade', 'exchange', 'app',
+  ]);
+  
+  /**
+   * Wortbestandteile, die in einem Domainnamen Geld versprechen. Als Muster statt
+   * als Wortliste, weil Domains Wörter zusammenziehen ("cashconnect") - und damit
+   * "earn" nicht in jedem "learn" anschlägt.
+   */
+  const GELD_KOEDER = [
+    { wort: 'cash', muster: /cash/ },
+    { wort: 'money', muster: /money/ },
+    { wort: 'geld', muster: /geld(?!ern)/ },
+    { wort: 'profit', muster: /profit/ },
+    { wort: 'invest', muster: /invest/ },
+    { wort: 'earn', muster: /(?<![lyh])earn/ },
+    { wort: 'verdienen', muster: /verdien/ },
+    { wort: 'gewinn', muster: /gewinn/ },
+    { wort: 'rendite', muster: /rendite/ },
+    { wort: 'bonus', muster: /bonus/ },
+    { wort: 'krypto', muster: /krypto|crypto/ },
+    { wort: 'bitcoin', muster: /bitcoin|btc/ },
+    { wort: 'trading', muster: /trading|trader|forex/ },
+    { wort: 'einkommen', muster: /income|einkommen/ },
+    { wort: 'auszahlung', muster: /payout|auszahlung|withdraw/ },
+    { wort: 'reichtum', muster: /wealth|reichtum|million(?:aer|är)/ },
+    { wort: 'zinsen', muster: /zinsen/ },
+  ];
+  
+  /**
+   * Signalwörter auf Webseiten, die Geld einsammeln: Anlagebetrug, Verdienst- und
+   * Schneeballsysteme. Gleiches Format wie CONTENT_SIGNALS.
+   */
+  const WEBSITE_SIGNALS = [
+    {
+      id: 'renditeversprechen',
+      titel: 'Garantierte oder unrealistisch hohe Rendite',
+      schwere: 'kritisch',
+      gewicht: 32,
+      erklaerung: 'Hohe Rendite ohne Risiko gibt es nicht. Prozente pro Tag oder pro Woche sind das Kennzeichen von Anlagebetrug und Schneeballsystemen - ausgezahlt wird dort anfangs nur aus dem Geld späterer Einzahler.',
+      rat: 'Zum Vergleich: Tagesgeld bringt wenige Prozent im Jahr. Wer ein Vielfaches davon garantiert, lügt. Kein Geld einzahlen.',
+      muster: [
+        /garantiert(?:e[nmrs]?)? (?:rendite|gewinne?|ertr(?:a|ä|ae)ge?|zinsen|auszahlung)/i,
+        /\d+(?:[.,]\d+)?\s*%\s*(?:rendite |gewinn |zinsen |profit |return )?(?:pro|am|im|je|jeden|per|a|every|each) (?:tag|woche|monat|day|week|month)\b/i,
+        /\d+(?:[.,]\d+)?\s*%\s*(?:t(?:a|ä|ae)glich|w(?:o|ö|oe)chentlich|daily|weekly)/i,
+        /t(?:a|ä|ae)glich(?:e[nmrs]?)? (?:rendite|gewinne?|ertr(?:a|ä|ae)ge?|zinsen|auszahlung)/i,
+        /\brisikofrei\b/i, /ohne (?:jedes |jegliches )?risiko/i, /kein(?:erlei)? verlustrisiko/i,
+        /(?:verdoppeln|verdreifachen|vervielfachen) sie (?:ihr|ihre|dein)/i, /geld (?:verdoppeln|vermehren)/i,
+        /guaranteed (?:returns?|profits?|income|payouts?)/i, /daily (?:returns?|profits?|interest|roi)/i,
+        /risk[- ]free/i, /double your (?:money|investment|bitcoin)/i, /\bno risk\b/i,
+      ],
+    },
+    {
+      id: 'schnellgeld',
+      titel: 'Versprechen von schnellem, mühelosem Geld',
+      schwere: 'hoch',
+      gewicht: 22,
+      erklaerung: 'Verdienstseiten locken mit Einkommen ohne Arbeit und ohne Vorkenntnisse. Verdient wird dort an den Gebühren und Einzahlungen der Angelockten.',
+      rat: 'Frag dich, wovon der Betreiber lebt, wenn er dir Geld fürs Nichtstun zahlt. Meist lautet die Antwort: von deiner Einzahlung.',
+      muster: [
+        /passive[ns]? einkommen/i, /(?:von zu ?hause|nebenbei|vom sofa)(?: aus)? (?:geld )?verdienen/i,
+        /\d[\d.,]*\s*(?:€|euro|eur|\$|dollar)\s*(?:pro|am|jeden|im|per|a|every)\s*(?:tag|woche|monat|day|week|month)/i,
+        /schnell(?:es geld| reich)/i, /finanzielle (?:freiheit|unabh(?:a|ä|ae)ngigkeit)/i,
+        /ohne (?:vor)?kenntnisse/i, /keine (?:erfahrung|vorkenntnisse) (?:n(?:o|ö|oe)tig|erforderlich)/i,
+        /nur (?:wenige|\d+) minuten (?:am|pro) tag/i, /automatisch(?:e[ns]?)? (?:geld|gewinne?|einkommen)/i,
+        /\bpassive income\b/i, /(?:earn|make) (?:money|cash) (?:fast|online|from home|daily)/i,
+        /make \$?\d[\d,]* (?:a|per) (?:day|week)/i, /\bget rich\b/i, /no experience (?:needed|required)/i,
+      ],
+    },
+    {
+      id: 'einzahlung',
+      titel: 'Erst Geld einzahlen, dann verdienen',
+      schwere: 'hoch',
+      gewicht: 24,
+      erklaerung: 'Das Grundmuster fast jedes Anlage- und Verdienstbetrugs: Um an Gewinne zu kommen, musst du zuerst Geld überweisen - und oft vor jeder Auszahlung noch einmal "Gebühren" oder "Steuern".',
+      rat: 'Nie Geld einzahlen, um "freigeschaltet" zu werden, und nie Gebühren zahlen, um eigenes Geld zurückzubekommen. Wer das verlangt, zahlt nicht aus.',
+      muster: [
+        /mindest(?:einzahlung|einlage|investition)/i, /einzahlung (?:ab|von mindestens)/i,
+        /(?:startkapital|einstiegskapital) (?:von|ab)/i, /investieren sie (?:nur|schon|bereits) (?:ab )?\d/i,
+        /konto (?:aufladen|aufstocken)/i, /(?:auszahlung|abhebung)s?geb(?:u|ü|ue)hr/i,
+        /geb(?:u|ü|ue)hr(?:en)? (?:vor|f(?:u|ü|ue)r) (?:die |der )?(?:auszahlung|freigabe|abhebung)/i,
+        /(?:steuer|freischaltung|verifizierungsgeb(?:u|ü|ue)hr)[\w ]{0,20}vor (?:der )?auszahlung/i,
+        /auszahlung (?:erst|nur) (?:nach|ab|wenn)/i,
+        /minimum deposit/i, /deposit (?:now|from|at least|\$?\d)/i, /withdrawal (?:fee|tax)/i,
+        /pay (?:a|the) (?:fee|tax) (?:to|before) (?:withdraw|unlock)/i,
+      ],
+    },
+    {
+      id: 'schneeball',
+      titel: 'Provision für das Anwerben weiterer Einzahler',
+      schwere: 'hoch',
+      gewicht: 26,
+      erklaerung: 'Werden Gewinne vor allem dafür gezahlt, neue Mitglieder zu werben, trägt sich das System nur, solange Neue einzahlen. Das ist das Bauprinzip eines Schneeballsystems.',
+      rat: 'Wenn du mehr am Werben als an einem echten Produkt verdienst, bist du Teil eines Schneeballsystems - und die Späteren verlieren ihr Geld.',
+      muster: [
+        /empfehlungs(?:provision|bonus|pr(?:a|ä|ae)mie)/i, /werben sie (?:freunde|mitglieder|neue)/i,
+        /(?:provision|bonus) (?:f(?:u|ü|ue)r )?jede[nr]? (?:geworbene|neue|empfohlene)/i,
+        /\b\d+\s*(?:provisions)?ebenen\b/i, /(?:provision|bonus|verg(?:u|ü|ue)tung)[\w ]{0,20}\b\d+\s*(?:level|stufen)\b/i,
+        /\bteam[- ]?(?:bonus|provision)\b/i,
+        /\bdownline\b/i, /\bupline\b/i, /\bmlm\b/i, /multi[- ]?level/i, /network[- ]?marketing/i,
+        /referral (?:bonus|commission|reward)/i, /refer (?:a friend|friends) and earn/i,
+      ],
+    },
+    {
+      id: 'kryptozahlung',
+      titel: 'Einzahlung per Krypto oder Guthabenkarte',
+      schwere: 'hoch',
+      gewicht: 22,
+      erklaerung: 'Krypto-Überweisungen und Guthabenkarten lassen sich nicht zurückholen. Deshalb bestehen Betrugsplattformen darauf.',
+      rat: 'Seriöse, beaufsichtigte Anbieter nehmen Überweisungen auf ein Konto im eigenen Namen an. Eine Wallet-Adresse zum Einzahlen ist ein Alarmzeichen.',
+      muster: [
+        /\busdt\b/i, /\btether\b/i, /\btrc-?20\b/i, /\berc-?20\b/i, /\bbep-?20\b/i,
+        /wallet[- ]?adresse/i, /wallet address/i, /(?:in|per|mit) (?:bitcoin|btc|krypto|crypto)(?:w(?:a|ä|ae)hrung)? (?:einzahlen|zahlen|bezahlen)/i,
+        /\bpaysafecard\b/i, /\bguthabenkarte\b/i, /gift ?card/i,
+      ],
+    },
+    {
+      id: 'promi',
+      titel: 'Werbung mit Prominenten oder bekannten Sendungen',
+      schwere: 'hoch',
+      gewicht: 24,
+      erklaerung: 'Gefälschte Empfehlungen von Prominenten oder angebliche Fernsehauftritte sind ein Markenzeichen betrügerischer Krypto- und Anlageplattformen. Die Genannten wissen davon nichts.',
+      rat: 'Kein Prominenter empfiehlt ernsthaft eine Plattform mit garantierten Gewinnen. Solche Anzeigen und Seiten sind gefälscht.',
+      muster: [
+        /h(?:o|ö|oe)hle der l(?:o|ö|oe)wen/i, /\bdhdl\b/i, /\bshark tank\b/i, /\bdragons'? den\b/i,
+        /g(?:u|ü|ue)nther jauch/i, /dieter bohlen/i, /carsten maschmeyer/i, /frank thelen/i,
+        /ralf d(?:u|ü|ue)mmel/i, /judith williams/i, /elon musk/i, /thomas gottschalk/i,
+        /wie (?:im|bei|in) (?:der )?(?:tv|fernsehen|sendung) (?:gesehen|bekannt)/i, /as seen on tv/i,
+      ],
+    },
+    {
+      id: 'fernzugriff',
+      titel: 'Fernwartungsprogramm oder persönlicher "Berater"',
+      schwere: 'kritisch',
+      gewicht: 30,
+      erklaerung: 'Betrugsplattformen stellen dir einen "Broker" oder "Berater" zur Seite, der dich per Telefon oder Messenger zu immer höheren Einzahlungen drängt - oft mit AnyDesk oder TeamViewer direkt auf deinem Rechner.',
+      rat: 'Niemals einer fremden Person Fernzugriff auf deinen Rechner geben. Kein seriöser Anlageberater braucht das.',
+      muster: [
+        /\banydesk\b/i, /\bteamviewer\b/i, /\bfernwartung\b/i, /\bfernzugriff\b/i,
+        /(?:ihr|dein|einen?) pers(?:o|ö|oe)nliche[rn]? (?:broker|berater|finanzberater|account[- ]?manager|kontomanager|mentor|coach)/i,
+        /(?:berater|broker|manager) (?:wird sich|meldet sich|ruft sie)/i,
+        /personal (?:broker|account manager|mentor)/i, /\bremote access\b/i,
+      ],
+    },
+    {
+      id: 'knappheit',
+      titel: 'Künstliche Knappheit und Zeitdruck',
+      schwere: 'mittel',
+      gewicht: 14,
+      erklaerung: 'Countdown, "nur noch wenige Plätze" und "nur heute" sollen dich zur Anmeldung drängen, bevor du nachprüfst.',
+      rat: 'Eine echte Geldanlage läuft dir nicht davon. Je mehr Eile, desto mehr Grund, erst einmal nichts zu tun.',
+      muster: [
+        /nur noch \d+ (?:freie )?(?:pl(?:a|ä|ae)tze|zug(?:a|ä|ae)nge|pl(?:a|ä|ae)tze frei)/i,
+        /(?:angebot|aktion|anmeldung) (?:endet|l(?:a|ä|ae)uft ab)/i, /nur (?:noch )?heute/i,
+        /\bbegrenzte (?:pl(?:a|ä|ae)tze|teilnehmerzahl|pl(?:a|ä|ae)tze)\b/i,
+        /only \d+ (?:spots?|places?|seats?) left/i, /limited (?:spots|time offer|places)/i, /offer ends/i,
+      ],
+    },
+  ];
+  return { IMPERSONATED_BRANDS, FREEMAIL_DOMAINS, DISPOSABLE_DOMAINS, URL_SHORTENERS, RISKY_TLDS, EXTENSION_RISK, CONTENT_SIGNALS, HOMOGLYPHS, BILLIG_TLDS, GELD_KOEDER, WEBSITE_SIGNALS };
 })();
 
 // ----- src/parse-eml.js -----
@@ -2378,6 +2606,37 @@ const __M_rules_content_js = (() => {
     return `${prefix}${kuerzen(text.slice(start, ende), 160)}${suffix}`;
   }
   
+  /**
+   * Signalgruppen gegen einen Text prüfen. Jede Gruppe ergibt höchstens einen
+   * Befund, mit den Fundstellen als Beweis.
+   */
+  function werteSignale(text, signale, praefix, kategorie) {
+    const befunde = [];
+    for (const signal of signale) {
+      const treffer = [];
+      for (const muster of signal.muster) {
+        const gefunden = text.match(muster);
+        if (gefunden) treffer.push(gefunden[0]);
+        if (treffer.length >= 4) break;
+      }
+      if (!treffer.length) continue;
+  
+      // Mehrere unabhängige Treffer einer Gruppe wiegen etwas schwerer.
+      const zuschlag = Math.min(treffer.length - 1, 2) * 3;
+      befunde.push({
+        id: `${praefix}-${signal.id}`,
+        kategorie,
+        schwere: signal.schwere,
+        gewicht: signal.gewicht + zuschlag,
+        titel: signal.titel,
+        erklaerung: signal.erklaerung,
+        beweis: [...new Set(treffer)].map((t) => fundstelle(text, t)),
+        rat: signal.rat,
+      });
+    }
+    return befunde;
+  }
+  
   function pruefeInhalt(mail) {
     const befunde = [];
     const sichtbar = [mail.text, htmlToText(mail.html)].filter(Boolean).join('\n');
@@ -2394,24 +2653,7 @@ const __M_rules_content_js = (() => {
       )];
     }
   
-    for (const signal of CONTENT_SIGNALS) {
-      const treffer = [];
-      for (const muster of signal.muster) {
-        const gefunden = gesamt.match(muster);
-        if (gefunden) treffer.push(gefunden[0]);
-        if (treffer.length >= 4) break;
-      }
-      if (!treffer.length) continue;
-  
-      // Mehrere unabhängige Treffer einer Gruppe wiegen etwas schwerer.
-      const zuschlag = Math.min(treffer.length - 1, 2) * 3;
-      befunde.push(befund(
-        `inhalt-${signal.id}`, signal.schwere, signal.gewicht + zuschlag,
-        signal.titel, signal.erklaerung,
-        [...new Set(treffer)].map((t) => fundstelle(gesamt, t)),
-        signal.rat,
-      ));
-    }
+    befunde.push(...werteSignale(gesamt, CONTENT_SIGNALS, 'inhalt', KAT));
   
     // Anrede: steht der eigene Name überhaupt drin?
     const empfaenger = parseAddressList(mail.header('to'))[0];
@@ -2489,7 +2731,7 @@ const __M_rules_content_js = (() => {
   
     return befunde;
   }
-  return { pruefeInhalt };
+  return { fundstelle, werteSignale, pruefeInhalt };
 })();
 
 // ----- src/rules/attachments.js -----
@@ -2609,6 +2851,230 @@ const __M_rules_attachments_js = (() => {
   return { pruefeAnhaenge };
 })();
 
+// ----- src/rules/website.js -----
+const __M_rules_website_js = (() => {
+  const {registrableDomain} = __M_parse_eml_js;
+  const {IMPERSONATED_BRANDS, RISKY_TLDS, BILLIG_TLDS, GELD_KOEDER, WEBSITE_SIGNALS} = __M_data_js;
+  const {enthaeltMarkenname, htmlToText, kuerzen} = __M_utils_js;
+  const {pruefeLinks} = __M_rules_links_js;
+  const {werteSignale, fundstelle} = __M_rules_content_js;
+  
+  
+  
+  
+  
+  const KAT_ADRESSE = 'Adresse';
+  const KAT_SEITE = 'Seiteninhalt';
+  
+  function befund(kategorie, id, schwere, gewicht, titel, erklaerung, beweis, rat) {
+    return { id, kategorie, schwere, gewicht, titel, erklaerung, beweis: [].concat(beweis).filter(Boolean), rat };
+  }
+  
+  /**
+   * Eingabe wie "cashconnect.online", "www.x.de/login" oder eine volle URL in
+   * eine zerlegte Adresse überführen. Ohne Schema wird https angenommen - das
+   * ist, was ein Browser heute daraus macht.
+   */
+  function zerlegeAdresse(eingabe) {
+    const roh = String(eingabe ?? '').trim().replace(/^[<"'(]+|[>"')]+$/g, '');
+    const ergebnis = {
+      eingabe: roh, url: '', schema: '', schemaAngegeben: false,
+      host: '', domain: '', tld: '', gueltig: false,
+    };
+    if (!roh) return ergebnis;
+  
+    const schemaMatch = roh.match(/^([a-z][a-z0-9+.-]*):/i);
+    ergebnis.schemaAngegeben = Boolean(schemaMatch) && /^[a-z][a-z0-9+.-]*:\/\//i.test(roh);
+    const url = ergebnis.schemaAngegeben ? roh : `https://${roh.replace(/^\/+/, '')}`;
+    try {
+      const parsed = new URL(url);
+      if (!['http:', 'https:'].includes(parsed.protocol) || !parsed.hostname.includes('.')) return ergebnis;
+      ergebnis.url = url;
+      ergebnis.schema = parsed.protocol.replace(':', '');
+      ergebnis.host = parsed.hostname.toLowerCase();
+      ergebnis.domain = registrableDomain(ergebnis.host);
+      ergebnis.tld = ergebnis.domain.split('.').pop();
+      ergebnis.gueltig = true;
+    } catch {
+      ergebnis.gueltig = false;
+    }
+    return ergebnis;
+  }
+  
+  /** Namensbestandteile ohne Endung und ohne "www" - dort stehen die Köderwörter. */
+  function namensteile(adresse) {
+    const ohneTld = adresse.domain.split('.').slice(0, -1);
+    const sub = adresse.host.slice(0, Math.max(0, adresse.host.length - adresse.domain.length))
+      .split('.').filter((t) => t && t !== 'www');
+    return [...sub, ...ohneTld].join('.');
+  }
+  
+  function pruefeDieAdresse(adresse) {
+    // Die Linkregeln kennen Tarnung, IP, Punycode, Homoglyphen, Kurzlinks,
+    // Tippfehler- und Subdomain-Marken schon. Hier nur als Adresse neu einsortiert.
+    const befunde = pruefeLinks({ text: adresse.url, html: '', header: () => '' })
+      .filter((b) => b.id !== 'keine-links')
+      .map((b) => ({ ...b, kategorie: KAT_ADRESSE }));
+  
+    const name = namensteile(adresse);
+  
+    // Ohne angegebenes Schema ist https angenommen - dann gibt es nichts zu bemängeln.
+    if (adresse.schemaAngegeben && adresse.schema === 'http' && !befunde.some((b) => b.id === 'link-unverschlüsselt')) {
+      befunde.push(befund(
+        KAT_ADRESSE, 'adresse-http', 'mittel', 12,
+        'Die Adresse ist unverschlüsselt (http statt https)',
+        'Eine Seite, auf der man sich anmeldet oder Geld einzahlt, ohne Verschlüsselung zu betreiben, ist heute entweder Betrug oder grob fahrlässig.',
+        adresse.url,
+        'Auf einer Seite ohne https niemals Zugangs- oder Zahlungsdaten eingeben.',
+      ));
+    }
+  
+    const koeder = GELD_KOEDER.filter((k) => k.muster.test(name)).map((k) => k.wort);
+    if (koeder.length) {
+      befunde.push(befund(
+        KAT_ADRESSE, 'adresse-geldkoeder', koeder.length >= 2 ? 'mittel' : 'niedrig', koeder.length >= 2 ? 16 : 10,
+        'Der Domainname verspricht Geld',
+        'Kurzlebige Anlage-, Verdienst- und Krypto-Seiten tragen ihr Versprechen oft schon im Namen. Für sich allein beweist das nichts - viele ehrliche Angebote heißen ähnlich.',
+        [`Domain: ${adresse.domain}`, `Enthält: ${koeder.join(', ')}`],
+        'Bevor du dort Geld einzahlst: Impressum lesen, den Betreiber im Handelsregister und die Erlaubnis in der BaFin-Unternehmensdatenbank nachschlagen.',
+      ));
+    }
+  
+    const billig = BILLIG_TLDS.has(adresse.tld);
+    const riskant = RISKY_TLDS.has(adresse.tld);
+    if (billig) {
+      befunde.push(befund(
+        KAT_ADRESSE, 'adresse-billig-tld', 'niedrig', 8,
+        `Die Endung .${adresse.tld} ist billig und anonym zu haben`,
+        'Solche Endungen kosten im ersten Jahr oft nur wenige Euro und werden deshalb gern für Seiten benutzt, die nach wenigen Wochen wieder verschwinden.',
+        `Domain: ${adresse.domain}`,
+        'Ein Anbieter, der dein Geld verwalten will, sitzt in Deutschland fast immer unter .de, .com oder .eu - mit Impressum.',
+      ));
+    }
+    if (koeder.length && (billig || riskant)) {
+      befunde.push(befund(
+        KAT_ADRESSE, 'adresse-koeder-kombination', 'mittel', 12,
+        'Geldversprechen im Namen auf einer Billig-Endung',
+        'Die Kombination aus Köderwort und Wegwerf-Endung ist typisch für Seiten, die schnell Einzahlungen einsammeln und dann verschwinden.',
+        `${adresse.domain}: "${koeder.join(', ')}" + .${adresse.tld}`,
+        'Hier besonders gründlich prüfen, bevor du dich registrierst oder Geld überweist.',
+      ));
+    }
+  
+    // Marke im registrierten Namen selbst, z. B. sparkasse-kundenservice.online.
+    // Tippfehler- und Subdomain-Fälle melden die Linkregeln schon.
+    if (!befunde.some((b) => ['link-tippfehler', 'link-marke-subdomain'].includes(b.id))) {
+      const eigenerName = adresse.domain.split('.').slice(0, -1).join('.');
+      for (const marke of IMPERSONATED_BRANDS) {
+        if (marke.token.length < 4 || marke.domains.includes(adresse.domain)) continue;
+        if (!enthaeltMarkenname(eigenerName, marke.token)) continue;
+        befunde.push(befund(
+          KAT_ADRESSE, 'adresse-fremde-marke', 'hoch', 26,
+          `Die Domain trägt "${marke.label}" im Namen, gehört aber nicht dazu`,
+          'Wer eine bekannte Marke in einen fremden Domainnamen einbaut, will ihr Vertrauen ausleihen. Die echten Adressen sind andere.',
+          [`Domain: ${adresse.domain}`, `Echte Adressen: ${marke.domains.join(', ')}`],
+          `Rufe ${marke.domains[0]} selbst im Browser auf, statt diese Seite zu benutzen.`,
+        ));
+        break;
+      }
+    }
+  
+    const bindestriche = (adresse.domain.match(/-/g) || []).length;
+    if (bindestriche >= 3) {
+      befunde.push(befund(
+        KAT_ADRESSE, 'adresse-bindestriche', 'niedrig', 8,
+        'Auffällig viele Bindestriche im Domainnamen',
+        'Namen wie konto-sicher-login-service.com werden aus Vertrauenswörtern zusammengesetzt. Etablierte Anbieter haben kurze Namen.',
+        `Domain: ${adresse.domain}`,
+        'Lies den Namen laut vor: Klingt er nach einer Firma oder nach einer Aneinanderreihung von Schlagwörtern?',
+      ));
+    }
+  
+    return befunde;
+  }
+  
+  function pruefeSeitentext(roh) {
+    const text = /<[a-z][^>]*>/i.test(roh) ? htmlToText(roh) : String(roh);
+    const befunde = werteSignale(text, WEBSITE_SIGNALS, 'seite', KAT_SEITE);
+  
+    const impressum = /impressum|imprint|legal notice|anbieterkennzeichnung|angaben gem(?:a|ä|ae)(?:ss|ß) § ?5/i;
+    if (text.replace(/\s/g, '').length >= 300 && !impressum.test(text)) {
+      befunde.push(befund(
+        KAT_SEITE, 'seite-kein-impressum', 'niedrig', 8,
+        'Im eingefügten Text ist kein Impressum zu sehen',
+        'Geschäftsmäßige Seiten, die sich an Kunden in Deutschland richten, müssen ein Impressum mit Namen und ladungsfähiger Anschrift haben (§ 5 DDG). Fehlt es, fehlt jeder greifbare Betreiber.',
+        [],
+        'Scrolle ganz nach unten und suche den Link "Impressum". Nur eine Postfach- oder Auslandsadresse ohne Registereintrag ist fast so schlecht wie keine.',
+      ));
+    }
+  
+    const bafin = text.match(/\bbafin\b[^.\n]{0,80}/i);
+    if (bafin) {
+      befunde.push(befund(
+        KAT_SEITE, 'seite-bafin-behauptet', 'info', 0,
+        'Die Seite beruft sich auf die BaFin',
+        'Eine Erwähnung der Finanzaufsicht beweist nichts. Betrugsseiten schmücken sich regelmäßig mit erfundenen oder fremden Registernummern.',
+        fundstelle(text, bafin[0]),
+        'In der Unternehmensdatenbank der BaFin nachsehen, ob es genau diese Firma mit genau dieser Adresse gibt - und ob die BaFin vor ihr warnt.',
+      ));
+    }
+  
+    const messenger = text.match(/\b(?:telegram|whatsapp|signal)\b[^.\n]{0,40}/i);
+    if (messenger && befunde.some((b) => b.gewicht > 0 && b.id !== 'seite-kein-impressum')) {
+      befunde.push(befund(
+        KAT_SEITE, 'seite-messenger', 'niedrig', 6,
+        'Kontakt über Messenger',
+        'Betrugsplattformen verlagern das Gespräch gern in Telegram- oder WhatsApp-Gruppen, wo "Mitglieder" von ihren Gewinnen schwärmen.',
+        fundstelle(text, messenger[0]),
+        'Gewinnbilder in einer Chatgruppe sind kein Beleg. Die "Mitglieder" gehören oft zu den Betreibern.',
+      ));
+    }
+  
+    return { befunde, textLaenge: text.trim().length };
+  }
+  
+  /**
+   * Eine Webadresse und optional den kopierten Text der Seite prüfen.
+   * Die Seite selbst wird nicht aufgerufen.
+   */
+  function pruefeWebsite(eingabe, seitentext = '') {
+    const adresse = zerlegeAdresse(eingabe);
+    const befunde = [];
+  
+    if (!adresse.gueltig) {
+      befunde.push(befund(
+        KAT_ADRESSE, 'adresse-unlesbar', 'info', 0,
+        'Die Adresse ließ sich nicht lesen',
+        'Erwartet wird eine Webadresse wie beispiel.de oder https://www.beispiel.de/seite.',
+        adresse.eingabe ? kuerzen(adresse.eingabe, 120) : [],
+        'Kopiere die Adresse direkt aus der Adresszeile des Browsers.',
+      ));
+    } else {
+      befunde.push(...pruefeDieAdresse(adresse));
+    }
+  
+    let textLaenge = 0;
+    if (String(seitentext).trim()) {
+      const seite = pruefeSeitentext(seitentext);
+      befunde.push(...seite.befunde);
+      textLaenge = seite.textLaenge;
+    }
+  
+    befunde.push(befund(
+      KAT_ADRESSE, 'adresse-offline', 'info', 0,
+      'Die Seite selbst wurde nicht aufgerufen',
+      textLaenge
+        ? 'Geprüft wurden die Adresse und der eingefügte Text. Nicht geprüft: Alter der Domain, Inhaber, Sperrlisten und Warnmeldungen - dafür müsste das Werkzeug ins Netz.'
+        : 'Geprüft wurde nur die Adresse. Was auf der Seite steht, wer sie betreibt und wie alt sie ist, bleibt offen. Füge den Text der Seite mit ein, um auch den Inhalt zu prüfen.',
+      adresse.domain ? `Domain: ${adresse.domain}` : [],
+      'Selbst nachschlagen: BaFin-Unternehmensdatenbank und Verbraucherwarnungen der BaFin, die Warnliste Geldanlage der Verbraucherzentralen, bei Shops den Fakeshop-Finder, und den Betreiber aus dem Impressum im Handelsregister.',
+    ));
+  
+    return { adresse, befunde, textLaenge };
+  }
+  return { zerlegeAdresse, pruefeWebsite };
+})();
+
 // ----- src/analyzer.js -----
 const __M_analyzer_js = (() => {
   const {parseEml, parseAddressList, registrableDomain} = __M_parse_eml_js;
@@ -2616,6 +3082,8 @@ const __M_analyzer_js = (() => {
   const {pruefeLinks} = __M_rules_links_js;
   const {pruefeInhalt} = __M_rules_content_js;
   const {pruefeAnhaenge} = __M_rules_attachments_js;
+  const {pruefeWebsite} = __M_rules_website_js;
+  
   
   
   
@@ -2643,6 +3111,22 @@ const __M_analyzer_js = (() => {
       kurz: 'Unauffällig',
       farbe: '#1e7a46',
       text: 'Die geprüften Merkmale sind unauffällig. Das ist kein Freibrief: Gut gemachte Angriffe bestehen diese Prüfung ebenfalls.',
+    },
+  };
+  
+  /** Urteilstexte für die Prüfung einer Webseite - gleiche Stufen, anderer Gegenstand. */
+  const STUFEN_ADRESSE = {
+    rot: {
+      ...STUFEN.rot,
+      text: 'Diese Seite trägt mehrere Merkmale, die bei seriösen Anbietern nicht vorkommen. Kein Geld einzahlen, nicht registrieren, keine Ausweisdaten hochladen.',
+    },
+    gelb: {
+      ...STUFEN.gelb,
+      text: 'Einzelne Merkmale sind auffällig. Prüfe Betreiber und Erlaubnis selbst nach, bevor du dich registrierst oder Geld überweist.',
+    },
+    gruen: {
+      ...STUFEN.gruen,
+      text: 'An der Adresse und am eingefügten Text ist nichts Typisches aufgefallen. Das ist kein Freibrief: Wer der Betreiber ist, zeigt erst das Impressum.',
     },
   };
   
@@ -2698,6 +3182,21 @@ const __M_analyzer_js = (() => {
     });
   }
   
+  /** Punkte, Stufe und Zählung aus den Befunden - für Mail und Webseite gleich. */
+  function bewerte(befunde) {
+    const wertend = befunde.filter((b) => b.schwere !== 'info' && b.schwere !== 'gut');
+    const punkte = verrechne(wertend);
+    const kritische = wertend.filter((b) => b.schwere === 'kritisch');
+    const hohe = wertend.filter((b) => b.schwere === 'hoch');
+  
+    let stufe = 'gruen';
+    if (kritische.length > 0 || punkte >= 60) stufe = 'rot';
+    else if (punkte >= 22 || hohe.length > 0) stufe = 'gelb';
+  
+    const zaehlung = Object.fromEntries(SCHWEREN.map((s) => [s, befunde.filter((b) => b.schwere === s).length]));
+    return { punkte, stufe, zaehlung };
+  }
+  
   /**
    * Hauptfunktion: rohe Mail oder bloßen Text prüfen.
    * @param {string} roh Inhalt der Mail, möglichst als Originaltext samt Kopfzeilen.
@@ -2713,21 +3212,13 @@ const __M_analyzer_js = (() => {
       ...pruefeAnhaenge(mail),
     ]);
   
-    const wertend = befunde.filter((b) => b.schwere !== 'info' && b.schwere !== 'gut');
-    const punkte = verrechne(wertend);
-    const kritische = wertend.filter((b) => b.schwere === 'kritisch');
-    const hohe = wertend.filter((b) => b.schwere === 'hoch');
-  
-    let stufe = 'gruen';
-    if (kritische.length > 0 || punkte >= 60) stufe = 'rot';
-    else if (punkte >= 22 || hohe.length > 0) stufe = 'gelb';
+    const { punkte, stufe, zaehlung } = bewerte(befunde);
   
     const from = parseAddressList(mail.header('from'))[0] || null;
     const replyTo = parseAddressList(mail.header('reply-to'))[0] || null;
   
-    const zaehlung = Object.fromEntries(SCHWEREN.map((s) => [s, befunde.filter((b) => b.schwere === s).length]));
-  
     return {
+      art: 'mail',
       stufe,
       urteil: STUFEN[stufe],
       punkte,
@@ -2794,12 +3285,92 @@ const __M_analyzer_js = (() => {
       'Warst du unsicher genug, um zu prüfen? Dann frag im Zweifel trotzdem beim Absender nach.',
     ];
   }
-  return { SCHWEREN, STUFEN, analysiere };
+  
+  /**
+   * Eine Webadresse prüfen, optional zusammen mit dem kopierten Text der Seite.
+   * Die Seite wird dabei nicht aufgerufen - das Werkzeug bleibt offline.
+   * @param {string} eingabe Adresse, z. B. "beispiel.online" oder "https://www.beispiel.de/login".
+   * @param {string} [seitentext] Sichtbarer Text oder HTML-Quelltext der Seite.
+   */
+  function analysiereAdresse(eingabe, seitentext = '') {
+    const { adresse, befunde: roh, textLaenge } = pruefeWebsite(eingabe, seitentext);
+    const befunde = sortiere(roh);
+    const { punkte, stufe, zaehlung } = bewerte(befunde);
+  
+    const sicherheit = textLaenge >= 200
+      ? {
+        stufe: 'mittel',
+        text: 'Adresse und Seitentext wurden geprüft. Wer die Seite betreibt, wie alt sie ist und ob schon vor ihr gewarnt wird, lässt sich offline nicht feststellen.',
+      }
+      : {
+        stufe: 'niedrig',
+        text: textLaenge
+          ? 'Neben der Adresse lag nur sehr wenig Seitentext vor. Die aussagekräftigsten Merkmale - Versprechen, Einzahlungsbedingungen, Impressum - fehlen.'
+          : 'Es wurde nur die Adresse geprüft. Die aussagekräftigsten Merkmale stehen auf der Seite selbst: Versprechen, Einzahlungsbedingungen, Impressum.',
+      };
+  
+    return {
+      art: 'adresse',
+      stufe,
+      urteil: STUFEN_ADRESSE[stufe],
+      punkte,
+      sicherheit,
+      befunde,
+      zaehlung,
+      adresse: {
+        eingabe: adresse.eingabe,
+        url: adresse.url,
+        host: adresse.host,
+        domain: adresse.domain,
+        endung: adresse.tld,
+        verschluesselt: adresse.gueltig ? adresse.schema === 'https' : null,
+        schemaAngenommen: adresse.gueltig && !adresse.schemaAngegeben,
+      },
+      naechsteSchritte: naechsteSchritteAdresse(stufe, befunde),
+    };
+  }
+  
+  /** Handlungsempfehlung für Webseiten, bei denen es fast immer um Geld geht. */
+  function naechsteSchritteAdresse(stufe, befunde) {
+    const nachschlagen = 'Selbst nachschlagen: Gibt es den Betreiber aus dem Impressum im Handelsregister? Hat er eine Erlaubnis laut BaFin-Unternehmensdatenbank? Steht die Seite auf der Warnliste Geldanlage der Verbraucherzentralen oder unter den Verbraucherwarnungen der BaFin?';
+    const hatFernzugriff = befunde.some((b) => b.id === 'seite-fernzugriff');
+    const hatEinzahlung = befunde.some((b) => ['seite-einzahlung', 'seite-kryptozahlung'].includes(b.id));
+  
+    if (stufe === 'rot') {
+      const schritte = [
+        'Kein Geld einzahlen und keine weiteren "Gebühren" oder "Steuern" für eine Auszahlung zahlen.',
+        'Nicht registrieren, keinen Ausweis und kein Selfie hochladen.',
+      ];
+      if (hatFernzugriff) schritte.push('Niemandem Fernzugriff auf deinen Rechner geben. Ist AnyDesk oder TeamViewer schon installiert: Programm beenden, deinstallieren und die Bank anrufen.');
+      schritte.push('Falls du schon eingezahlt hast: sofort die Bank anrufen und einen Rückruf der Überweisung versuchen, dann Strafanzeige erstatten. Die Schritte stehen unten unter "Wenn es schon passiert ist".');
+      schritte.push('Vorsicht vor "Rückholdiensten", die sich danach melden und gegen Vorkasse dein Geld zurückholen wollen. Das ist dieselbe Masche ein zweites Mal.');
+      schritte.push('Die Seite der Verbraucherzentrale oder der BaFin melden, damit andere gewarnt werden.');
+      return schritte;
+    }
+  
+    if (stufe === 'gelb') {
+      const schritte = [
+        'Noch kein Geld einzahlen und keine persönlichen Daten hinterlegen.',
+        nachschlagen,
+      ];
+      if (hatEinzahlung) schritte.push('Kläre vorher schriftlich, wie und wann du dein Geld zurückbekommst. Wird das ausweichend beantwortet, ist die Sache entschieden.');
+      schritte.push('Sprich mit jemandem, dem du vertraust, bevor du Geld überweist. Betrüger setzen darauf, dass du allein entscheidest.');
+      return schritte;
+    }
+  
+    return [
+      'Keine typischen Merkmale gefunden - aber bei allem, was mit Geld zu tun hat, gilt trotzdem:',
+      nachschlagen,
+      'Füge den Text der Seite mit ein, wenn du ihn noch nicht geprüft hast. Die Versprechen auf der Seite sagen mehr als ihre Adresse.',
+    ];
+  }
+  return { SCHWEREN, STUFEN, STUFEN_ADRESSE, analysiere, analysiereAdresse };
 })();
 
-const { analysiere, STUFEN, SCHWEREN } = __M_analyzer_js;
+const { analysiere, analysiereAdresse, STUFEN, SCHWEREN } = __M_analyzer_js;
 
 const BEISPIEL_MAIL = "Return-Path: <bounce@mailer-77.example-host.top>\nReceived: from mail-77.example-host.top ([185.234.219.14])\n\tby mx.provider.de with ESMTP id 4Rb2fk0Xz1\n\tfor <max.mustermann@provider.de>; Tue, 12 Aug 2025 03:14:07 +0200\nAuthentication-Results: mx.provider.de;\n\tspf=fail (sender IP is 185.234.219.14) smtp.mailfrom=example-host.top;\n\tdkim=none header.d=sparkasse-sicherheit.top;\n\tdmarc=fail (p=REJECT) header.from=sparkasse-sicherheit.top\nFrom: \"Sparkasse Sicherheitsteam\" <noreply@sparkasse-sicherheit.top>\nReply-To: kundenservice.sparkasse@gmx-support.icu\nTo: max.mustermann@provider.de\nSubject: =?UTF-8?B?SWhyIEtvbnRvIHd1cmRlIGdlc3BlcnJ0IC0gc29mb3J0aWdlcyBIYW5kZWxuIGVyZm9yZGVybGljaA==?=\nDate: Tue, 12 Aug 2025 03:14:05 +0200\nMessage-ID: <20250812031405.7712@mailer-77.example-host.top>\nMIME-Version: 1.0\nContent-Type: text/html; charset=UTF-8\nContent-Transfer-Encoding: quoted-printable\n\n<html><body>\n<p>Sehr geehrter Kunde,</p>\n<p>aus Sicherheitsgr=C3=BCnden wurde Ihr Online-Banking-Zugang\n<b>vor=C3=BCbergehend gesperrt</b>. Bitte best=C3=A4tigen Sie Ihre Daten\ninnerhalb von 24 Stunden, andernfalls erfolgt die endg=C3=BCltige\nKontoschlie=C3=9Fung und eine Geb=C3=BChr von 49,90 EUR wird f=C3=A4llig.</p>\n<p><a href=3D\"http://sparkasse.de.sicher-login.example-host.top/verify?token=\n=3Dxk29\">https://www.sparkasse.de/kundenportal</a></p>\n<p>Halten Sie Ihre PIN und eine g=C3=BCltige TAN bereit.</p>\n<p style=3D\"font-size:0\">lorem ipsum dolor sit amet consectetur</p>\n<p style=3D\"display:none\">unsichtbarer fuelltext gegen spamfilter</p>\n</body></html>\n";
+const BEISPIEL_SEITE = {"adresse":"https://www.renditeturbo-beispiel.online/start","text":"Nachgebaute Beispielseite - erfunden, um die Webseiten-Prüfung vorzuführen.\n\nRenditeTurbo - Ihr Weg in die finanzielle Freiheit\n\nVerdienen Sie ab 450 € pro Tag - bequem von zu Hause aus, ganz ohne Vorkenntnisse!\nUnsere KI handelt für Sie rund um die Uhr: garantierte Rendite von 2,5 % täglich,\nvöllig risikofrei.\n\nBekannt aus Die Höhle der Löwen: Carsten Maschmeyer nennt es \"die Chance des Jahrzehnts\".\n\nSo einfach geht's:\n1. Kostenlos registrieren\n2. Mindesteinzahlung 250 € leisten - bequem per USDT (TRC20) an unsere Wallet-Adresse\n3. Ihr persönlicher Broker ruft Sie an und richtet mit AnyDesk alles für Sie ein\n\nWerben Sie Freunde und kassieren Sie Empfehlungsprovision über 5 Ebenen!\n\nAchtung: Nur noch 7 freie Plätze in Deutschland. Das Angebot endet heute um Mitternacht.\n\nTreten Sie unserer Telegram-Gruppe bei und sehen Sie die Gewinne unserer Mitglieder.\nReguliert und überwacht durch die BaFin (Lizenz Nr. 48213).\n"};
 
 
 (() => {
@@ -2808,6 +3379,11 @@ const BEISPIEL_MAIL = "Return-Path: <bounce@mailer-77.example-host.top>\nReceive
   const feld = document.getElementById('quelle');
   const ziel = document.getElementById('ergebnis');
   const formular = document.getElementById('formular');
+  const formularWeb = document.getElementById('formular-web');
+  const adressfeld = document.getElementById('adresse');
+  const seitenfeld = document.getElementById('seitentext');
+  const reiterMail = document.getElementById('modus-mail');
+  const reiterWeb = document.getElementById('modus-web');
 
   const SCHWERE_TEXT = {
     kritisch: 'Kritisch',
@@ -2824,13 +3400,29 @@ const BEISPIEL_MAIL = "Return-Path: <bounce@mailer-77.example-host.top>\nReceive
     Inhalt: 'Formulierungen',
     'Anhänge': 'Anhänge',
     Technik: 'Technische Herkunft',
+    Adresse: 'Adresse',
+    Seiteninhalt: 'Inhalt der Seite',
   };
 
   const sicher = (wert) => String(wert ?? '').replace(/[&<>"']/g, (z) => (
     { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[z]
   ));
 
+  function baueAdressbrief(bericht) {
+    const a = bericht.adresse;
+    if (!a.domain) return '';
+    const paar = (dt, dd, warnen) => '<div class="paar"><dt>' + sicher(dt) + '</dt><dd' +
+      (warnen ? ' class="warn"' : '') + '>' + sicher(dd) + '</dd></div>';
+    let zeilen = paar('Registrierbare Domain', a.domain);
+    if (a.host !== a.domain) zeilen += paar('Vollständiger Name', a.host);
+    zeilen += paar('Verbindung', a.verschluesselt
+      ? 'https' + (a.schemaAngenommen ? ' (angenommen)' : '')
+      : 'http, unverschlüsselt', !a.verschluesselt);
+    return '<section class="steckbrief"><h3>Steckbrief</h3><dl class="paare">' + zeilen + '</dl></section>';
+  }
+
   function baueSteckbrief(bericht) {
+    if (bericht.art === 'adresse') return baueAdressbrief(bericht);
     if (!bericht.kopf.istMail) return '';
     const a = bericht.absender;
     const zeilen = [];
@@ -2896,8 +3488,11 @@ const BEISPIEL_MAIL = "Return-Path: <bounce@mailer-77.example-host.top>\nReceive
     let html = '';
 
     if (istBeispiel) {
-      html += '<div class="beispielmarke"><b>Beispiel.</b> Das ist eine nachgebaute ' +
-        'Phishing-Mail, damit du siehst, was das Werkzeug tut. Füge oben deine eigene Mail ein.</div>';
+      html += bericht.art === 'adresse'
+        ? '<div class="beispielmarke"><b>Beispiel.</b> Das ist eine erfundene Anlagebetrugs-' +
+          'Seite, damit du siehst, was das Werkzeug tut. Trag oben deine eigene Adresse ein.</div>'
+        : '<div class="beispielmarke"><b>Beispiel.</b> Das ist eine nachgebaute ' +
+          'Phishing-Mail, damit du siehst, was das Werkzeug tut. Füge oben deine eigene Mail ein.</div>';
     }
 
     html +=
@@ -2925,13 +3520,32 @@ const BEISPIEL_MAIL = "Return-Path: <bounce@mailer-77.example-host.top>\nReceive
     ziel.innerHTML = html;
   }
 
+  function nichtsZuPruefen(text) {
+    ziel.innerHTML = '<section class="urteil" data-stufe="gruen"><div class="streifen"></div>' +
+      '<div class="urteil-koerper"><h2>Nichts zu prüfen</h2>' +
+      '<p>' + sicher(text) + '</p>' +
+      '</div></section>';
+  }
+
+  function pruefeWeb(istBeispiel) {
+    const adresse = adressfeld.value;
+    if (!adresse.trim()) {
+      nichtsZuPruefen('Trag oben die Webadresse ein — am besten direkt aus der Adresszeile des Browsers kopiert.');
+      return;
+    }
+    try {
+      zeichne(analysiereAdresse(adresse, seitenfeld.value), istBeispiel);
+    } catch (fehler) {
+      ziel.innerHTML = '<section class="urteil" data-stufe="gelb"><div class="streifen"></div>' +
+        '<div class="urteil-koerper"><h2>Die Prüfung ist abgebrochen</h2>' +
+        '<p>' + sicher(fehler.message) + '</p></div></section>';
+    }
+  }
+
   function pruefe(istBeispiel) {
     const roh = feld.value;
     if (!roh.trim()) {
-      ziel.innerHTML = '<section class="urteil" data-stufe="gruen"><div class="streifen"></div>' +
-        '<div class="urteil-koerper"><h2>Nichts zu prüfen</h2>' +
-        '<p>Füge oben den Text der Mail ein — am besten den Originaltext samt Kopfzeilen.</p>' +
-        '</div></section>';
+      nichtsZuPruefen('Füge oben den Text der Mail ein — am besten den Originaltext samt Kopfzeilen.');
       return;
     }
     try {
@@ -2959,6 +3573,42 @@ const BEISPIEL_MAIL = "Return-Path: <bounce@mailer-77.example-host.top>\nReceive
   document.getElementById('leeren-knopf').addEventListener('click', () => {
     feld.value = '';
     feld.focus();
+    ziel.innerHTML = '';
+  });
+
+  function waehleModus(web) {
+    reiterMail.setAttribute('aria-selected', String(!web));
+    reiterWeb.setAttribute('aria-selected', String(web));
+    formular.hidden = web;
+    formularWeb.hidden = !web;
+    ziel.innerHTML = '';
+    if (web) {
+      if (adressfeld.value.trim()) pruefeWeb(adressfeld.value === BEISPIEL_SEITE.adresse);
+      else { adressfeld.focus(); }
+    } else if (feld.value.trim()) {
+      pruefe(feld.value === BEISPIEL_MAIL);
+    }
+  }
+
+  reiterMail.addEventListener('click', () => waehleModus(false));
+  reiterWeb.addEventListener('click', () => waehleModus(true));
+
+  formularWeb.addEventListener('submit', (e) => {
+    e.preventDefault();
+    pruefeWeb(false);
+    ziel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  document.getElementById('web-beispiel-knopf').addEventListener('click', () => {
+    adressfeld.value = BEISPIEL_SEITE.adresse;
+    seitenfeld.value = BEISPIEL_SEITE.text;
+    pruefeWeb(true);
+  });
+
+  document.getElementById('web-leeren-knopf').addEventListener('click', () => {
+    adressfeld.value = '';
+    seitenfeld.value = '';
+    adressfeld.focus();
     ziel.innerHTML = '';
   });
 

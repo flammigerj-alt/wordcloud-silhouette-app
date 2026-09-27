@@ -14,6 +14,14 @@ Geprüft werden vier Ebenen:
 | **Links** | Sichtbarer Text gegen echtes Linkziel, `@`-Trick, rohe IP-Adressen, Punycode, Kurzlinks, ungewöhnliche Ports, Weiterleitungsketten, Formulare und Passwortfelder direkt in der Mail, unsichtbarer Text |
 | **Inhalt und Anhänge** | Zeitdruck, Drohungen, Frage nach TAN/PIN/Passwort, geänderte Bankverbindung, Chefmasche, unpersönliche Anrede, QR-Codes, ausführbare und doppelt benannte Anhänge, passwortgeschützte Archive |
 
+Dazu kommt eine fünfte Prüfart für **Webseiten** — gedacht für Anlage-, Krypto- und
+Verdienstseiten, die mit schnellem Geld locken:
+
+| Ebene | Was untersucht wird |
+| --- | --- |
+| **Adresse** | Köderwörter im Namen (cash, profit, rendite …), billige Wegwerf-Endungen, fremde Marke im Domainnamen, fehlende Verschlüsselung — plus alle Linkregeln von oben |
+| **Seitentext** (optional eingefügt) | Garantierte oder tägliche Rendite, „erst einzahlen, dann verdienen", Auszahlungsgebühren, Provision fürs Anwerben (Schneeball), Einzahlung per USDT oder Guthabenkarte, Promi-Werbung, „persönlicher Broker" mit AnyDesk, künstliche Knappheit, fehlendes Impressum, behauptete BaFin-Aufsicht |
+
 Alles läuft **lokal**. Weder die Browser- noch die Kommandozeilenfassung stellt
 eine Netzwerkverbindung her. Eine Mail, in der es um dein Konto geht, gehört
 nicht in ein fremdes Online-Formular.
@@ -36,13 +44,24 @@ cat verdaechtig.eml | node bin/cli.js           # aus der Standardeingabe
 node bin/cli.js verdaechtig.eml --json          # maschinenlesbar
 ```
 
+Webseiten:
+
+```bash
+node bin/cli.js --url cashconnect.online                         # nur die Adresse
+node bin/cli.js --url https://x.online --seite seitentext.txt    # samt kopiertem Seitentext
+```
+
+Die Seite wird dabei **nicht aufgerufen**. Den Seitentext holst du dir selbst: Seite
+öffnen, <kbd>Strg</kbd>+<kbd>A</kbd>, <kbd>Strg</kbd>+<kbd>C</kbd>, in eine Datei
+einfügen. Im Browser gibt es dafür den Reiter „Webseite".
+
 Der Rückgabewert eignet sich für Skripte: `0` unauffällig, `1` verdächtig,
 `2` sehr wahrscheinlich Betrug.
 
 ### Als Bibliothek
 
 ```js
-import { analysiere } from './src/analyzer.js';
+import { analysiere, analysiereAdresse } from './src/analyzer.js';
 
 const bericht = analysiere(rohtextDerMail);
 console.log(bericht.stufe);        // 'rot' | 'gelb' | 'gruen'
@@ -51,6 +70,8 @@ console.log(bericht.sicherheit);   // wie belastbar das Urteil ist
 for (const b of bericht.befunde) {
   console.log(b.schwere, b.titel, b.beweis, b.rat);
 }
+
+const seite = analysiereAdresse('cashconnect.online', kopierterSeitentext);
 ```
 
 ---
@@ -80,6 +101,11 @@ Getrennt davon steht die **Aussagekraft**. Sie sagt, wie belastbar das Urteil
 | hoch | vollständiger Kopf mit Zustellweg *und* SPF/DKIM/DMARC-Ergebnis |
 | mittel | Kopf vorhanden, aber ohne Echtheitsprüfung |
 | niedrig | nur Text, kein Kopf — die aussagekräftigsten Merkmale fehlen |
+
+Bei Webseiten gibt es höchstens **mittel** (Adresse und Seitentext): Wer die Seite
+betreibt, wie alt die Domain ist und ob schon vor ihr gewarnt wird, lässt sich offline
+nicht feststellen. Nur mit der Adresse bleibt es bei **niedrig** — ein Domainname wie
+`cash…online` macht eine Seite verdächtig, beweist aber keinen Betrug.
 
 Diese Trennung ist wichtig: Ein grünes Ergebnis bei niedriger Aussagekraft heißt
 nicht „harmlos", sondern „hier war zu wenig zu sehen".
@@ -161,7 +187,7 @@ ersetzt keine Rechtsberatung.
 ## Entwicklung
 
 ```bash
-npm test          # 27 Tests, ohne externe Abhängigkeiten
+npm test          # 37 Tests, ohne externe Abhängigkeiten
 npm run build     # baut dist/ aus src/ und web/vorlage.html neu
 ```
 
@@ -172,12 +198,12 @@ src/
   parse-eml.js       MIME- und Header-Parser (fehlertolerant, ohne Abhängigkeiten)
   data.js            Wissensbasis: Marken, Freemailer, Dateitypen, Signalwörter
   utils.js           Linkextraktion, Homoglyphen, Levenshtein, Markenabgleich
-  rules/*.js         die vier Regelgruppen
+  rules/*.js         die vier Regelgruppen für Mails, dazu website.js für Webadressen
   analyzer.js        Bewertung, Stufen, Handlungsempfehlung
 bin/cli.js           Kommandozeilenfassung
 web/vorlage.html     Oberfläche mit Platzhaltern für den Prüfkern
 build.mjs            bündelt src/ + Vorlage zu einer einzelnen HTML-Datei
-beispiele/           drei Mails: zwei Betrugsfälle, eine echte
+beispiele/           drei Mails (zwei Betrugsfälle, eine echte) und eine erfundene Anlagebetrugs-Seite
 ```
 
 Es gibt bewusst **keine Laufzeit-Abhängigkeiten**. Der Parser, die
@@ -187,7 +213,8 @@ als die gesparten Zeilen.
 
 ### Eine Regel hinzufügen
 
-Signalwörter kommen nach `src/data.js` in `CONTENT_SIGNALS` — mit `titel`,
+Signalwörter kommen nach `src/data.js` in `CONTENT_SIGNALS` (Mails) bzw.
+`WEBSITE_SIGNALS` (Webseiten) — mit `titel`,
 `erklaerung` (*warum* das ein Signal ist) und `rat` (*was* zu tun ist). Struktur-
 oder Header-Regeln kommen in die passende Datei unter `src/rules/`. Jeder Befund
 braucht alle drei Textfelder; ein Test wacht darüber.
