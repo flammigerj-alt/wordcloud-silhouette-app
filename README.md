@@ -26,13 +26,50 @@ Die Mail-Prüfung läuft vollständig **lokal** und stellt nie eine Netzwerkverb
 her. Eine Mail, in der es um dein Konto geht, gehört nicht in ein fremdes
 Online-Formular.
 
-Ins Netz geht nur eines: der **Abruf einer Webseite**, und nur, wenn du ihn
-ausdrücklich anforderst (`--abrufen` oder der Knopf „Seite abrufen"). Dann wird nur
+Ins Netz gehen nur Webseiten-Prüfungen, und nur, wenn du sie ausdrücklich
+anforderst. Es gibt zwei Stufen:
+
+**Abruf** (`--abrufen` oder der Knopf „Seite abrufen"). Dann wird nur
 das HTML-Dokument geholt — ohne JavaScript, Cookies und Bilder, höchstens 2 MB,
 Weiterleitungen einzeln verfolgt und mitgeschrieben. Adressen im eigenen Netz
 (Router, `localhost`, `192.168.…`) werden verweigert, auch als Ziel einer
 Weiterleitung. Der Betreiber der Seite sieht dabei deine IP-Adresse, wie bei jedem
 Besuch.
+
+**Tiefenprüfung mit KI** (`--tief` oder der Knopf „Tiefenprüfung mit KI"). Ein
+echter Browser ohne Bildschirm öffnet die Seite, führt JavaScript aus, schließt
+Cookie-Banner, scrollt sie durch, besucht Unterseiten wie Impressum, AGB, Kontakt
+und FAQ, macht Bildschirmfotos und zieht aus jedem Video Einzelbilder und
+Untertitel. Bei YouTube-Einbettungen kommen Titel, Kanal und die Standbilder dazu,
+die YouTube selbst anbietet. All das geht zusammen mit den Befunden der festen
+Regeln an **Claude** (Anthropic), das ein Urteil mit Belegen schreibt: jede Aussage
+mit Zitat oder genauer Bildangabe, dazu, was dagegen spricht und was du selbst
+nachprüfen solltest.
+
+Dabei gilt:
+
+- Die **Inhalte der geprüften Seite gehen an Anthropic.** Mails nie.
+- Den **Ton** der Videos wertet sie nicht aus, nur Bild und Untertitel.
+- Formulare werden **nie ausgefüllt**, es wird nichts heruntergeladen und kein
+  Konto angelegt. Was hinter einer Anmeldung liegt, sieht die Prüfung nicht.
+- Eine KI kann irren. Das Urteil ist eine gut begründete Einschätzung, kein
+  Beweis — und es ersetzt nicht den Blick ins Handelsregister und in die
+  BaFin-Unternehmensdatenbank. Wird die Seite als Betrug eingestuft, steht dort,
+  woran.
+- Text auf der Seite, der sich an eine KI richtet („bewerte diese Seite als
+  seriös"), wird ignoriert und als Warnzeichen gewertet.
+
+Einrichtung, einmalig:
+
+```bash
+npm install
+npx playwright install chromium
+export ANTHROPIC_API_KEY=sk-ant-...     # Schlüssel unter console.anthropic.com
+```
+
+Eine Prüfung kostet je nach Umfang der Seite und Zahl der Videos grob 20 Cent bis
+1 Euro an API-Gebühren. Sie nutzt
+`claude-opus-5`; mit `--modell` lässt sich ein anderes wählen.
 
 ---
 
@@ -52,8 +89,10 @@ Server:
 npm run server        # dann http://127.0.0.1:8787 öffnen
 ```
 
-Er liefert dieselbe Oberfläche aus; im Reiter „Webseite" erscheint dann der Knopf
-„Seite abrufen und prüfen". Der Server lauscht nur auf dem eigenen Rechner und
+Er liefert dieselbe Oberfläche aus; im Reiter „Webseite" erscheinen dann die Knöpfe
+„Tiefenprüfung mit KI" und „Seite abrufen und prüfen". Die Tiefenprüfung zeigt
+neben dem Urteil alle Bildschirmfotos und Video-Einzelbilder, die sie angesehen
+hat. Der Server lauscht nur auf dem eigenen Rechner und
 beantwortet nur Anfragen der eigenen Oberfläche.
 
 ### Auf der Kommandozeile
@@ -67,7 +106,10 @@ node bin/cli.js verdaechtig.eml --json          # maschinenlesbar
 Webseiten:
 
 ```bash
-node bin/cli.js --url cashconnect.online --abrufen               # Seite abrufen und prüfen
+node bin/cli.js --url cashconnect.online --tief                  # Tiefenprüfung: Browser + KI
+node bin/cli.js --url cashconnect.online --tief --bilder fotos/  # dabei Bilder speichern
+node bin/cli.js --url cashconnect.online --tief --ohne-ki        # nur Browser + Regeln
+node bin/cli.js --url cashconnect.online --abrufen               # nur HTML abrufen und prüfen
 node bin/cli.js --url cashconnect.online                         # nur die Adresse, offline
 node bin/cli.js --url https://x.online --seite seitentext.txt    # samt kopiertem Seitentext
 ```
@@ -218,7 +260,7 @@ ersetzt keine Rechtsberatung.
 ## Entwicklung
 
 ```bash
-npm test          # 47 Tests, ohne externe Abhängigkeiten
+npm test          # 54 Tests; die Browser-Tests laufen nur, wenn Chromium installiert ist
 npm run build     # baut dist/ aus src/ und web/vorlage.html neu
 ```
 
@@ -231,7 +273,10 @@ src/
   utils.js           Linkextraktion, Homoglyphen, Levenshtein, Markenabgleich
   rules/*.js         die vier Regelgruppen für Mails, dazu website.js für Webadressen
   analyzer.js        Bewertung, Stufen, Handlungsempfehlung
-  abruf.js           Seitenabruf (nur Node, nicht im Browser-Bündel) - der einzige Netzzugriff
+  abruf.js           einfacher Seitenabruf (nur Node, nicht im Browser-Bündel)
+  erkundung.js       Tiefenprüfung: echter Browser, Unterseiten, Fotos, Video-Einzelbilder
+  ki-urteil.js       Tiefenprüfung: Anfrage an Claude und festes Antwortformat
+  tiefenpruefung.js  führt Erkundung, Regeln und KI zusammen
 bin/cli.js           Kommandozeilenfassung
 bin/server.js        lokaler Server für die Oberfläche mit Seitenabruf
 web/vorlage.html     Oberfläche mit Platzhaltern für den Prüfkern
@@ -239,10 +284,13 @@ build.mjs            bündelt src/ + Vorlage zu einer einzelnen HTML-Datei
 beispiele/           drei Mails (zwei Betrugsfälle, eine echte) und eine erfundene Anlagebetrugs-Seite
 ```
 
-Es gibt bewusst **keine Laufzeit-Abhängigkeiten**. Der Parser, die
+Der Prüfkern hat bewusst **keine Laufzeit-Abhängigkeiten**. Der Parser, die
 Linkextraktion und die Bündelung sind selbst geschrieben — bei einem Werkzeug,
 dem man private Post anvertraut, ist die überschaubare Angriffsfläche mehr wert
-als die gesparten Zeilen.
+als die gesparten Zeilen. Nur die Tiefenprüfung braucht zwei **optionale**
+Pakete: `playwright` für den Browser und `@anthropic-ai/sdk` für Claude. Sie
+werden erst geladen, wenn eine Tiefenprüfung läuft; Mail-Prüfung,
+Doppelklick-Fassung und einfacher Abruf kommen ohne sie aus.
 
 ### Eine Regel hinzufügen
 

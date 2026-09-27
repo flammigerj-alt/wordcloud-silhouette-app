@@ -14,6 +14,9 @@ import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { ruefeSeiteAb } from '../src/abruf.js';
 
+/** Tiefenprüfung nur anbieten, wenn Playwright installiert ist. */
+const tiefMoeglich = await import('playwright').then(() => true, () => false);
+
 const argumente = process.argv.slice(2);
 const portIndex = argumente.indexOf('--port');
 const PORT = Number(portIndex === -1 ? process.env.PORT || 8787 : argumente[portIndex + 1]);
@@ -56,7 +59,7 @@ const server = createServer(async (anfrage, antwort) => {
       return;
     }
     if (url.pathname === '/abruf/bereit') {
-      json(antwort, 200, { bereit: true });
+      json(antwort, 200, { bereit: true, tief: tiefMoeglich });
       return;
     }
     const ziel = url.searchParams.get('url') || '';
@@ -67,6 +70,27 @@ const server = createServer(async (anfrage, antwort) => {
     return;
   }
 
+  if (anfrage.method === 'GET' && url.pathname === '/tief') {
+    if (!istEigeneAnfrage(anfrage)) {
+      json(antwort, 403, { fehler: 'Nur für die eigene Oberfläche' });
+      return;
+    }
+    if (!tiefMoeglich) {
+      json(antwort, 501, { fehler: 'Playwright fehlt. Einmalig ausführen: npm install && npx playwright install chromium' });
+      return;
+    }
+    const ziel = url.searchParams.get('url') || '';
+    const { tiefenpruefung } = await import('../src/tiefenpruefung.js');
+    try {
+      const ergebnis = await tiefenpruefung(ziel, { fortschritt: (t) => console.log(`${new Date().toISOString()}  ${t}  ${ziel}`) });
+      console.log(`${new Date().toISOString()}  Tiefenprüfung fertig: ${ergebnis.stufe} (${ergebnis.urteilsquelle})${ergebnis.kiFehler ? `  KI: ${ergebnis.kiFehler}` : ''}`);
+      json(antwort, 200, ergebnis);
+    } catch (fehler) {
+      json(antwort, 500, { fehler: String(fehler.message || fehler) });
+    }
+    return;
+  }
+
   antwort.writeHead(404, { 'content-type': 'text/plain; charset=utf-8' });
   antwort.end('Nicht gefunden');
 });
@@ -74,4 +98,7 @@ const server = createServer(async (anfrage, antwort) => {
 server.listen(PORT, '127.0.0.1', () => {
   console.log(`Mail-Befund läuft auf http://127.0.0.1:${PORT}`);
   console.log('Seitenabrufe gehen von diesem Rechner aus. Beenden mit Strg+C.');
+  console.log(tiefMoeglich
+    ? `Tiefenprüfung verfügbar${process.env.ANTHROPIC_API_KEY ? '' : ' (ohne ANTHROPIC_API_KEY nur Browser und Regeln, falls kein "ant auth login"-Profil besteht)'}.`
+    : 'Tiefenprüfung nicht verfügbar: npm install && npx playwright install chromium');
 });

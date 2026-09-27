@@ -19,7 +19,7 @@ import { htmlToText } from './utils.js';
  * Viele Betrugsseiten zeigen Programmen eine harmlose Fassung und nur
  * Browsern die echte. Deshalb meldet sich der Abruf wie ein gewöhnlicher Browser.
  */
-const BROWSER_KENNUNG = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
+export const BROWSER_KENNUNG = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36';
 
 const STANDARD = {
   zeitlimitMs: 10000,
@@ -50,7 +50,7 @@ export function istPrivateIp(ip) {
   return true;
 }
 
-async function pruefeZiel(host, erlaubePrivat) {
+export async function pruefeZiel(host, erlaubePrivat) {
   if (erlaubePrivat) return;
   const adressen = isIP(host.replace(/^\[|\]$/g, ''))
     ? [{ address: host }]

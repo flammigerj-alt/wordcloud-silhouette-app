@@ -34,7 +34,8 @@ export function zerlegeAdresse(eingabe) {
     ergebnis.url = url;
     ergebnis.schema = parsed.protocol.replace(':', '');
     ergebnis.host = parsed.hostname.toLowerCase();
-    ergebnis.domain = registrableDomain(ergebnis.host);
+    // Eine IP-Adresse hat keine "registrierbare Domain" - sie ist selbst der Name.
+    ergebnis.domain = /^[\d.]+$|:/.test(ergebnis.host) ? ergebnis.host : registrableDomain(ergebnis.host);
     ergebnis.tld = ergebnis.domain.split('.').pop();
     ergebnis.gueltig = true;
   } catch {
