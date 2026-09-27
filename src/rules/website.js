@@ -6,6 +6,7 @@ import { werteSignale, fundstelle } from './content.js';
 
 const KAT_ADRESSE = 'Adresse';
 const KAT_SEITE = 'Seiteninhalt';
+const KAT_ABRUF = 'Abruf';
 
 function befund(kategorie, id, schwere, gewicht, titel, erklaerung, beweis, rat) {
   return { id, kategorie, schwere, gewicht, titel, erklaerung, beweis: [].concat(beweis).filter(Boolean), rat };
@@ -174,11 +175,60 @@ function pruefeSeitentext(roh) {
   return { befunde, textLaenge: text.trim().length };
 }
 
+/** Was der Abruf selbst verrät: Weiterleitungen, Fehler, reine JavaScript-Seiten. */
+function pruefeAbruf(adresse, abruf, befunde) {
+  if (!abruf.ok) {
+    befunde.push(befund(
+      KAT_ABRUF, 'abruf-fehlgeschlagen', 'info', 0,
+      'Die Seite ließ sich nicht abrufen',
+      'Ohne den Inhalt der Seite bleibt nur die Adresse. Betrugsseiten verschwinden oft nach wenigen Wochen oder sperren Abrufe, die nicht nach einem gewöhnlichen Browser aussehen.',
+      abruf.fehler || `Status ${abruf.status}`,
+      'Öffne die Seite selbst, kopiere den Text und füge ihn ein. Ist sie schon verschwunden, spricht das eher gegen als für den Anbieter.',
+    ));
+  }
+
+  const endAdresse = abruf.endUrl ? zerlegeAdresse(abruf.endUrl) : null;
+  if (endAdresse?.gueltig && endAdresse.domain !== adresse.domain) {
+    befunde.push(befund(
+      KAT_ABRUF, 'abruf-weiterleitung', 'mittel', 14,
+      `Die Adresse leitet auf eine andere Domain weiter (${endAdresse.domain})`,
+      'Eingegeben hast du eine Adresse, gelandet wärst du auf einer anderen. Betrüger schalten solche Zwischenstationen vor, damit gesperrte Zieldomains nicht auffallen.',
+      abruf.kette.map((k) => `${k.status} ${kuerzen(k.url, 110)}`),
+      `Maßgeblich ist, wo du landest: ${endAdresse.domain}. Prüfe diese Adresse, nicht die eingegebene.`,
+    ));
+    // Das Ziel selbst ebenso prüfen; was schon für die Eingabe gemeldet ist, nicht doppelt.
+    const bekannt = new Set(befunde.map((b) => b.id));
+    for (const b of pruefeDieAdresse(endAdresse)) {
+      if (bekannt.has(b.id)) continue;
+      befunde.push({ ...b, titel: `Ziel der Weiterleitung: ${b.titel}` });
+    }
+  } else if (endAdresse?.gueltig && adresse.schema === 'https' && endAdresse.schema === 'http') {
+    befunde.push(befund(
+      KAT_ABRUF, 'abruf-herabgestuft', 'mittel', 14,
+      'Die Seite leitet von https auf eine unverschlüsselte Adresse um',
+      'Eine verschlüsselte Adresse, die dich absichtlich auf eine unverschlüsselte schickt, ist bei seriösen Anbietern ausgeschlossen.',
+      abruf.kette.map((k) => `${k.status} ${kuerzen(k.url, 110)}`),
+      'Auf dieser Seite nichts eingeben.',
+    ));
+  }
+
+  if (abruf.ok && String(abruf.text || '').replace(/\s/g, '').length < 200 && abruf.skripte >= 2) {
+    befunde.push(befund(
+      KAT_ABRUF, 'abruf-nur-javascript', 'info', 0,
+      'Die Seite baut ihren Inhalt erst per JavaScript auf',
+      'Der Abruf führt aus Sicherheitsgründen kein JavaScript aus. Bei solchen Seiten kommt deshalb kaum Text an - und die Versprechen auf der Seite bleiben ungeprüft.',
+      `${abruf.skripte} Skripte, ${String(abruf.text || '').trim().length} Zeichen Text`,
+      'Öffne die Seite im Browser, markiere alles, kopiere den Text und füge ihn zusätzlich ein.',
+    ));
+  }
+}
+
 /**
- * Eine Webadresse und optional den kopierten Text der Seite prüfen.
- * Die Seite selbst wird nicht aufgerufen.
+ * Eine Webadresse und optional den Text der Seite prüfen. Der Text stammt
+ * entweder vom Nutzer selbst oder aus einem Abruf (siehe src/abruf.js);
+ * diese Funktion selbst geht nie ins Netz.
  */
-export function pruefeWebsite(eingabe, seitentext = '') {
+export function pruefeWebsite(eingabe, seitentext = '', abruf = null) {
   const adresse = zerlegeAdresse(eingabe);
   const befunde = [];
 
@@ -194,11 +244,26 @@ export function pruefeWebsite(eingabe, seitentext = '') {
     befunde.push(...pruefeDieAdresse(adresse));
   }
 
+  if (abruf && adresse.gueltig) pruefeAbruf(adresse, abruf, befunde);
+
+  // Selbst eingefügter Text geht vor: Er zeigt, was ein Mensch im Browser sieht.
+  const text = String(seitentext).trim() ? seitentext : (abruf?.ok ? abruf.text : '');
   let textLaenge = 0;
-  if (String(seitentext).trim()) {
-    const seite = pruefeSeitentext(seitentext);
+  if (String(text).trim()) {
+    const seite = pruefeSeitentext(text);
     befunde.push(...seite.befunde);
     textLaenge = seite.textLaenge;
+  }
+
+  if (abruf) {
+    befunde.push(befund(
+      KAT_ABRUF, 'abruf-hinweis', 'info', 0,
+      abruf.ok ? 'Die Seite wurde abgerufen - ohne JavaScript, Cookies und Bilder' : 'Abruf versucht',
+      'Geprüft wurde das HTML-Dokument, das der Server ausliefert. Nicht geprüft: Alter der Domain, Inhaber, Sperrlisten und Warnmeldungen.',
+      abruf.endUrl ? `Abgerufen: ${kuerzen(abruf.endUrl, 120)}` : [],
+      'Selbst nachschlagen: BaFin-Unternehmensdatenbank und Verbraucherwarnungen der BaFin, die Warnliste Geldanlage der Verbraucherzentralen, bei Shops den Fakeshop-Finder, und den Betreiber aus dem Impressum im Handelsregister.',
+    ));
+    return { adresse, befunde, textLaenge };
   }
 
   befunde.push(befund(

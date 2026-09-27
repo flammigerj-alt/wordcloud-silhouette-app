@@ -199,6 +199,7 @@ button.haupt {
 button.haupt:hover { opacity: .87; background: var(--tinte); }
 .hinweiszeile { font-size: .87rem; color: var(--tinte-still); margin: 0; }
 .eingabe[hidden] { display: none; }
+.hinweiszeile code, .urteil code { font-family: var(--mono); font-size: .86em; }
 input[type="text"] {
   width: 100%;
   padding: 12px 16px;
@@ -541,14 +542,21 @@ summary:hover { background: var(--flaeche-tief); }
     <label for="seitentext">Text der Seite — optional, aber aussagekräftiger</label>
     <textarea id="seitentext" spellcheck="false" aria-describedby="web-hinweis"></textarea>
     <div class="knopfreihe">
-      <button type="submit" class="haupt">Prüfen</button>
+      <button type="button" class="haupt" id="abruf-knopf" hidden>Seite abrufen und prüfen</button>
+      <button type="submit" class="haupt" id="web-pruef-knopf">Prüfen</button>
       <button type="button" id="web-beispiel-knopf">Beispiel laden</button>
       <button type="button" id="web-leeren-knopf">Leeren</button>
     </div>
     <p class="hinweiszeile" id="web-hinweis">
-      Die Seite wird nicht aufgerufen. Öffne sie selbst, markiere alles mit Strg+A, kopiere es mit
-      Strg+C und füge es hier ein — dann prüft das Werkzeug auch Versprechen, Einzahlungsbedingungen
-      und Impressum.
+      In dieser Fassung wird die Seite nicht aufgerufen. Öffne sie selbst, markiere alles mit Strg+A,
+      kopiere es mit Strg+C und füge es hier ein — dann prüft das Werkzeug auch Versprechen,
+      Einzahlungsbedingungen und Impressum. Automatisch abrufen kann es, wenn du es mit
+      <code>npm run server</code> startest.
+    </p>
+    <p class="hinweiszeile" id="abruf-hinweis" hidden>
+      „Seite abrufen" holt nur das HTML-Dokument — ohne JavaScript, Cookies und Bilder. Der Betreiber
+      sieht dabei deine IP-Adresse, wie bei jedem Besuch. Seiten, die ihren Inhalt erst per JavaScript
+      aufbauen, liefern so kaum Text; dann hilft nur Kopieren und Einfügen.
     </p>
   </form>
 
@@ -2872,6 +2880,7 @@ const __M_rules_website_js = (() => {
   
   const KAT_ADRESSE = 'Adresse';
   const KAT_SEITE = 'Seiteninhalt';
+  const KAT_ABRUF = 'Abruf';
   
   function befund(kategorie, id, schwere, gewicht, titel, erklaerung, beweis, rat) {
     return { id, kategorie, schwere, gewicht, titel, erklaerung, beweis: [].concat(beweis).filter(Boolean), rat };
@@ -3040,11 +3049,60 @@ const __M_rules_website_js = (() => {
     return { befunde, textLaenge: text.trim().length };
   }
   
+  /** Was der Abruf selbst verrät: Weiterleitungen, Fehler, reine JavaScript-Seiten. */
+  function pruefeAbruf(adresse, abruf, befunde) {
+    if (!abruf.ok) {
+      befunde.push(befund(
+        KAT_ABRUF, 'abruf-fehlgeschlagen', 'info', 0,
+        'Die Seite ließ sich nicht abrufen',
+        'Ohne den Inhalt der Seite bleibt nur die Adresse. Betrugsseiten verschwinden oft nach wenigen Wochen oder sperren Abrufe, die nicht nach einem gewöhnlichen Browser aussehen.',
+        abruf.fehler || `Status ${abruf.status}`,
+        'Öffne die Seite selbst, kopiere den Text und füge ihn ein. Ist sie schon verschwunden, spricht das eher gegen als für den Anbieter.',
+      ));
+    }
+  
+    const endAdresse = abruf.endUrl ? zerlegeAdresse(abruf.endUrl) : null;
+    if (endAdresse?.gueltig && endAdresse.domain !== adresse.domain) {
+      befunde.push(befund(
+        KAT_ABRUF, 'abruf-weiterleitung', 'mittel', 14,
+        `Die Adresse leitet auf eine andere Domain weiter (${endAdresse.domain})`,
+        'Eingegeben hast du eine Adresse, gelandet wärst du auf einer anderen. Betrüger schalten solche Zwischenstationen vor, damit gesperrte Zieldomains nicht auffallen.',
+        abruf.kette.map((k) => `${k.status} ${kuerzen(k.url, 110)}`),
+        `Maßgeblich ist, wo du landest: ${endAdresse.domain}. Prüfe diese Adresse, nicht die eingegebene.`,
+      ));
+      // Das Ziel selbst ebenso prüfen; was schon für die Eingabe gemeldet ist, nicht doppelt.
+      const bekannt = new Set(befunde.map((b) => b.id));
+      for (const b of pruefeDieAdresse(endAdresse)) {
+        if (bekannt.has(b.id)) continue;
+        befunde.push({ ...b, titel: `Ziel der Weiterleitung: ${b.titel}` });
+      }
+    } else if (endAdresse?.gueltig && adresse.schema === 'https' && endAdresse.schema === 'http') {
+      befunde.push(befund(
+        KAT_ABRUF, 'abruf-herabgestuft', 'mittel', 14,
+        'Die Seite leitet von https auf eine unverschlüsselte Adresse um',
+        'Eine verschlüsselte Adresse, die dich absichtlich auf eine unverschlüsselte schickt, ist bei seriösen Anbietern ausgeschlossen.',
+        abruf.kette.map((k) => `${k.status} ${kuerzen(k.url, 110)}`),
+        'Auf dieser Seite nichts eingeben.',
+      ));
+    }
+  
+    if (abruf.ok && String(abruf.text || '').replace(/\s/g, '').length < 200 && abruf.skripte >= 2) {
+      befunde.push(befund(
+        KAT_ABRUF, 'abruf-nur-javascript', 'info', 0,
+        'Die Seite baut ihren Inhalt erst per JavaScript auf',
+        'Der Abruf führt aus Sicherheitsgründen kein JavaScript aus. Bei solchen Seiten kommt deshalb kaum Text an - und die Versprechen auf der Seite bleiben ungeprüft.',
+        `${abruf.skripte} Skripte, ${String(abruf.text || '').trim().length} Zeichen Text`,
+        'Öffne die Seite im Browser, markiere alles, kopiere den Text und füge ihn zusätzlich ein.',
+      ));
+    }
+  }
+  
   /**
-   * Eine Webadresse und optional den kopierten Text der Seite prüfen.
-   * Die Seite selbst wird nicht aufgerufen.
+   * Eine Webadresse und optional den Text der Seite prüfen. Der Text stammt
+   * entweder vom Nutzer selbst oder aus einem Abruf (siehe src/abruf.js);
+   * diese Funktion selbst geht nie ins Netz.
    */
-  function pruefeWebsite(eingabe, seitentext = '') {
+  function pruefeWebsite(eingabe, seitentext = '', abruf = null) {
     const adresse = zerlegeAdresse(eingabe);
     const befunde = [];
   
@@ -3060,11 +3118,26 @@ const __M_rules_website_js = (() => {
       befunde.push(...pruefeDieAdresse(adresse));
     }
   
+    if (abruf && adresse.gueltig) pruefeAbruf(adresse, abruf, befunde);
+  
+    // Selbst eingefügter Text geht vor: Er zeigt, was ein Mensch im Browser sieht.
+    const text = String(seitentext).trim() ? seitentext : (abruf?.ok ? abruf.text : '');
     let textLaenge = 0;
-    if (String(seitentext).trim()) {
-      const seite = pruefeSeitentext(seitentext);
+    if (String(text).trim()) {
+      const seite = pruefeSeitentext(text);
       befunde.push(...seite.befunde);
       textLaenge = seite.textLaenge;
+    }
+  
+    if (abruf) {
+      befunde.push(befund(
+        KAT_ABRUF, 'abruf-hinweis', 'info', 0,
+        abruf.ok ? 'Die Seite wurde abgerufen - ohne JavaScript, Cookies und Bilder' : 'Abruf versucht',
+        'Geprüft wurde das HTML-Dokument, das der Server ausliefert. Nicht geprüft: Alter der Domain, Inhaber, Sperrlisten und Warnmeldungen.',
+        abruf.endUrl ? `Abgerufen: ${kuerzen(abruf.endUrl, 120)}` : [],
+        'Selbst nachschlagen: BaFin-Unternehmensdatenbank und Verbraucherwarnungen der BaFin, die Warnliste Geldanlage der Verbraucherzentralen, bei Shops den Fakeshop-Finder, und den Betreiber aus dem Impressum im Handelsregister.',
+      ));
+      return { adresse, befunde, textLaenge };
     }
   
     befunde.push(befund(
@@ -3295,19 +3368,23 @@ const __M_analyzer_js = (() => {
   
   /**
    * Eine Webadresse prüfen, optional zusammen mit dem kopierten Text der Seite.
-   * Die Seite wird dabei nicht aufgerufen - das Werkzeug bleibt offline.
+   * Diese Funktion selbst geht nicht ins Netz. Soll die Seite abgerufen werden,
+   * erledigt das ruefeSeiteAb() aus src/abruf.js vorher, und das Ergebnis kommt
+   * hier als `abruf` herein.
    * @param {string} eingabe Adresse, z. B. "beispiel.online" oder "https://www.beispiel.de/login".
    * @param {string} [seitentext] Sichtbarer Text oder HTML-Quelltext der Seite.
+   * @param {object} [abruf] Ergebnis von ruefeSeiteAb().
    */
-  function analysiereAdresse(eingabe, seitentext = '') {
-    const { adresse, befunde: roh, textLaenge } = pruefeWebsite(eingabe, seitentext);
+  function analysiereAdresse(eingabe, seitentext = '', abruf = null) {
+    const { adresse, befunde: roh, textLaenge } = pruefeWebsite(eingabe, seitentext, abruf);
     const befunde = sortiere(roh);
     const { punkte, stufe, zaehlung } = bewerte(befunde);
   
+    const quelle = String(seitentext).trim() ? 'Seitentext' : 'abgerufene Seite';
     const sicherheit = textLaenge >= 200
       ? {
         stufe: 'mittel',
-        text: 'Adresse und Seitentext wurden geprüft. Wer die Seite betreibt, wie alt sie ist und ob schon vor ihr gewarnt wird, lässt sich offline nicht feststellen.',
+        text: `Adresse und ${quelle} wurden geprüft. Wer die Seite betreibt, wie alt sie ist und ob schon vor ihr gewarnt wird, zeigt die Seite selbst nicht.`,
       }
       : {
         stufe: 'niedrig',
@@ -3333,6 +3410,12 @@ const __M_analyzer_js = (() => {
         verschluesselt: adresse.gueltig ? adresse.schema === 'https' : null,
         schemaAngenommen: adresse.gueltig && !adresse.schemaAngegeben,
       },
+      abruf: abruf
+        ? {
+          ok: abruf.ok, status: abruf.status, endUrl: abruf.endUrl, kette: abruf.kette,
+          fehler: abruf.fehler, abgeschnitten: abruf.abgeschnitten,
+        }
+        : null,
       naechsteSchritte: naechsteSchritteAdresse(stufe, befunde),
     };
   }
@@ -3391,6 +3474,7 @@ const BEISPIEL_SEITE = {"adresse":"https://www.renditeturbo-beispiel.online/star
   const seitenfeld = document.getElementById('seitentext');
   const reiterMail = document.getElementById('modus-mail');
   const reiterWeb = document.getElementById('modus-web');
+  const abrufKnopf = document.getElementById('abruf-knopf');
 
   const SCHWERE_TEXT = {
     kritisch: 'Kritisch',
@@ -3534,6 +3618,34 @@ const BEISPIEL_SEITE = {"adresse":"https://www.renditeturbo-beispiel.online/star
       '</div></section>';
   }
 
+  let letzterAbruf = null;
+
+  async function ruefeAbUndPruefe() {
+    const adresse = adressfeld.value.trim();
+    if (!adresse) {
+      nichtsZuPruefen('Trag oben die Webadresse ein — am besten direkt aus der Adresszeile des Browsers kopiert.');
+      return;
+    }
+    abrufKnopf.disabled = true;
+    abrufKnopf.textContent = 'Wird abgerufen …';
+    try {
+      const antwort = await fetch('/abruf?url=' + encodeURIComponent(adresse), { headers: { 'x-mail-befund': '1' } });
+      if (!antwort.ok) throw new Error('Der lokale Server hat den Abruf abgelehnt (' + antwort.status + ').');
+      const abruf = await antwort.json();
+      abruf.eingabe = adresse;
+      letzterAbruf = abruf;
+      if (abruf.ok) seitenfeld.value = abruf.text;
+      zeichne(analysiereAdresse(adresse, '', abruf), false);
+    } catch (fehler) {
+      ziel.innerHTML = '<section class="urteil" data-stufe="gelb"><div class="streifen"></div>' +
+        '<div class="urteil-koerper"><h2>Der Abruf ist fehlgeschlagen</h2>' +
+        '<p>' + sicher(fehler.message) + ' Läuft <code>npm run server</code> noch?</p></div></section>';
+    } finally {
+      abrufKnopf.disabled = false;
+      abrufKnopf.textContent = 'Seite abrufen und prüfen';
+    }
+  }
+
   function pruefeWeb(istBeispiel) {
     const adresse = adressfeld.value;
     if (!adresse.trim()) {
@@ -3541,7 +3653,11 @@ const BEISPIEL_SEITE = {"adresse":"https://www.renditeturbo-beispiel.online/star
       return;
     }
     try {
-      zeichne(analysiereAdresse(adresse, seitenfeld.value), istBeispiel);
+      // Der Text im Feld stammt vom letzten Abruf, solange die Adresse gleich blieb:
+      // dann die Abrufdaten (Weiterleitungen) mitgeben, den Text aber als abgerufen werten.
+      const abruf = letzterAbruf && letzterAbruf.eingabe === adresse.trim() ? letzterAbruf : null;
+      const text = abruf && abruf.ok && seitenfeld.value === abruf.text ? '' : seitenfeld.value;
+      zeichne(analysiereAdresse(adresse, text, abruf), istBeispiel);
     } catch (fehler) {
       ziel.innerHTML = '<section class="urteil" data-stufe="gelb"><div class="streifen"></div>' +
         '<div class="urteil-koerper"><h2>Die Prüfung ist abgebrochen</h2>' +
@@ -3612,7 +3728,27 @@ const BEISPIEL_SEITE = {"adresse":"https://www.renditeturbo-beispiel.online/star
     pruefeWeb(true);
   });
 
+  abrufKnopf.addEventListener('click', () => {
+    ruefeAbUndPruefe();
+    ziel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  });
+
+  // Nur über "npm run server" gibt es jemanden, der Seiten abrufen kann.
+  if (/^https?:$/.test(location.protocol)) {
+    fetch('/abruf/bereit', { headers: { 'x-mail-befund': '1' } })
+      .then((a) => (a.ok ? a.json() : null))
+      .then((d) => {
+        if (!d || !d.bereit) return;
+        abrufKnopf.hidden = false;
+        document.getElementById('web-pruef-knopf').classList.remove('haupt');
+        document.getElementById('web-hinweis').hidden = true;
+        document.getElementById('abruf-hinweis').hidden = false;
+      })
+      .catch(() => {});
+  }
+
   document.getElementById('web-leeren-knopf').addEventListener('click', () => {
+    letzterAbruf = null;
     adressfeld.value = '';
     seitenfeld.value = '';
     adressfeld.focus();

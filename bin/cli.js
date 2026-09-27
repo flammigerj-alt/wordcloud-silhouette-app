@@ -6,11 +6,14 @@
  *   cat mail.eml | node bin/cli.js
  *   node bin/cli.js mail.eml --json
  *   node bin/cli.js --url beispiel.online [--seite seitentext.txt]
+ *   node bin/cli.js --url beispiel.online --abrufen
  *
- * Es werden keinerlei Daten verschickt - alles läuft lokal, ohne Netzwerk.
+ * Die Mail-Prüfung verschickt keinerlei Daten. Ins Netz geht nur --abrufen,
+ * und nur zu der angegebenen Webseite.
  */
 import { readFileSync } from 'node:fs';
 import { analysiere, analysiereAdresse } from '../src/analyzer.js';
+import { ruefeSeiteAb } from '../src/abruf.js';
 
 const ESC = String.fromCharCode(27);
 const FARBEN = {
@@ -81,6 +84,13 @@ function drucke(bericht) {
     if (a.verschluesselt !== null) {
       console.log(`  Verbindung: ${a.verschluesselt ? 'https' : 'http (unverschlüsselt)'}${a.schemaAngenommen ? ' (angenommen)' : ''}`);
     }
+    const r = bericht.abruf;
+    if (r) {
+      console.log(`  Abruf:      ${r.ok ? `Status ${r.status}` : f('gelb', r.fehler || `Status ${r.status}`)}`);
+      if (r.kette.length > 1) {
+        for (const k of r.kette) console.log(f('grau', `              ${k.status} ${k.url}`));
+      }
+    }
   }
 
   if (bericht.kopf?.istMail) {
@@ -122,7 +132,7 @@ function drucke(bericht) {
   console.log('');
 }
 
-function main() {
+async function main() {
   const argumente = process.argv.slice(2);
   if (argumente.includes('--help') || argumente.includes('-h')) {
     console.log([
@@ -135,9 +145,11 @@ function main() {
       '',
       '  node bin/cli.js --url <adresse>                     Webadresse prüfen',
       '  node bin/cli.js --url <adresse> --seite <datei>     samt kopiertem Seitentext',
+      '  node bin/cli.js --url <adresse> --abrufen           Seite abrufen und prüfen',
       '',
-      'Die Webseite wird dabei nicht aufgerufen. Geprüft werden die Adresse und,',
-      'falls angegeben, der Text, den du selbst von der Seite kopiert hast.',
+      'Ohne --abrufen wird die Webseite nicht aufgerufen. Mit --abrufen holt das',
+      'Werkzeug nur das HTML-Dokument - ohne JavaScript, Cookies und Bilder.',
+      'Der Betreiber der Seite sieht dabei deine IP-Adresse, wie bei jedem Besuch.',
       '',
       'Rückgabewert: 0 unauffällig, 1 verdächtig, 2 sehr wahrscheinlich Betrug.',
       'Am aussagekräftigsten ist die Prüfung mit dem vollständigen Original-Header.',
@@ -172,7 +184,8 @@ function main() {
         return;
       }
     }
-    bericht = analysiereAdresse(url, seitentext);
+    const abruf = argumente.includes('--abrufen') ? await ruefeSeiteAb(url) : null;
+    bericht = analysiereAdresse(url, seitentext, abruf);
   } else {
     const pfad = argumente.find((a) => !a.startsWith('-'));
     const roh = leseEingabe(pfad);

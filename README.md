@@ -20,11 +20,19 @@ Verdienstseiten, die mit schnellem Geld locken:
 | Ebene | Was untersucht wird |
 | --- | --- |
 | **Adresse** | Köderwörter im Namen (cash, profit, rendite …), billige Wegwerf-Endungen, fremde Marke im Domainnamen, fehlende Verschlüsselung — plus alle Linkregeln von oben |
-| **Seitentext** (optional eingefügt) | Garantierte oder tägliche Rendite, „erst einzahlen, dann verdienen", Auszahlungsgebühren, Provision fürs Anwerben (Schneeball), Einzahlung per USDT oder Guthabenkarte, Promi-Werbung, „persönlicher Broker" mit AnyDesk, künstliche Knappheit, fehlendes Impressum, behauptete BaFin-Aufsicht |
+| **Seitentext** (abgerufen oder selbst eingefügt) | Garantierte oder tägliche Rendite, „erst einzahlen, dann verdienen", Auszahlungsgebühren, Provision fürs Anwerben (Schneeball), Einzahlung per USDT oder Guthabenkarte, Promi-Werbung, „persönlicher Broker" mit AnyDesk, künstliche Knappheit, fehlendes Impressum, behauptete BaFin-Aufsicht |
 
-Alles läuft **lokal**. Weder die Browser- noch die Kommandozeilenfassung stellt
-eine Netzwerkverbindung her. Eine Mail, in der es um dein Konto geht, gehört
-nicht in ein fremdes Online-Formular.
+Die Mail-Prüfung läuft vollständig **lokal** und stellt nie eine Netzwerkverbindung
+her. Eine Mail, in der es um dein Konto geht, gehört nicht in ein fremdes
+Online-Formular.
+
+Ins Netz geht nur eines: der **Abruf einer Webseite**, und nur, wenn du ihn
+ausdrücklich anforderst (`--abrufen` oder der Knopf „Seite abrufen"). Dann wird nur
+das HTML-Dokument geholt — ohne JavaScript, Cookies und Bilder, höchstens 2 MB,
+Weiterleitungen einzeln verfolgt und mitgeschrieben. Adressen im eigenen Netz
+(Router, `localhost`, `192.168.…`) werden verweigert, auch als Ziel einer
+Weiterleitung. Der Betreiber der Seite sieht dabei deine IP-Adresse, wie bei jedem
+Besuch.
 
 ---
 
@@ -35,6 +43,18 @@ nicht in ein fremdes Online-Formular.
 `dist/phishing-check.html` herunterladen und doppelklicken. Eine einzelne Datei,
 keine Installation, kein Server. Die Mail lässt sich einfügen oder als `.eml`-Datei
 in das Textfeld ziehen.
+
+Webseiten **abrufen** kann diese Fassung nicht: Eine per Doppelklick geöffnete Seite
+darf aus Sicherheitsgründen keine fremden Seiten lesen. Dafür gibt es den lokalen
+Server:
+
+```bash
+npm run server        # dann http://127.0.0.1:8787 öffnen
+```
+
+Er liefert dieselbe Oberfläche aus; im Reiter „Webseite" erscheint dann der Knopf
+„Seite abrufen und prüfen". Der Server lauscht nur auf dem eigenen Rechner und
+beantwortet nur Anfragen der eigenen Oberfläche.
 
 ### Auf der Kommandozeile
 
@@ -47,13 +67,16 @@ node bin/cli.js verdaechtig.eml --json          # maschinenlesbar
 Webseiten:
 
 ```bash
-node bin/cli.js --url cashconnect.online                         # nur die Adresse
+node bin/cli.js --url cashconnect.online --abrufen               # Seite abrufen und prüfen
+node bin/cli.js --url cashconnect.online                         # nur die Adresse, offline
 node bin/cli.js --url https://x.online --seite seitentext.txt    # samt kopiertem Seitentext
 ```
 
-Die Seite wird dabei **nicht aufgerufen**. Den Seitentext holst du dir selbst: Seite
-öffnen, <kbd>Strg</kbd>+<kbd>A</kbd>, <kbd>Strg</kbd>+<kbd>C</kbd>, in eine Datei
-einfügen. Im Browser gibt es dafür den Reiter „Webseite".
+Viele Betrugsseiten bauen ihren Inhalt erst per JavaScript auf; beim Abruf kommt
+dann kaum Text an, und das Werkzeug sagt das auch. Dann hilft der Weg von Hand:
+Seite im Browser öffnen, <kbd>Strg</kbd>+<kbd>A</kbd>, <kbd>Strg</kbd>+<kbd>C</kbd>,
+in eine Datei einfügen und mit `--seite` übergeben. Selbst eingefügter Text geht
+dem abgerufenen immer vor.
 
 Der Rückgabewert eignet sich für Skripte: `0` unauffällig, `1` verdächtig,
 `2` sehr wahrscheinlich Betrug.
@@ -72,6 +95,11 @@ for (const b of bericht.befunde) {
 }
 
 const seite = analysiereAdresse('cashconnect.online', kopierterSeitentext);
+
+// Mit Abruf (nur unter Node) - analysiereAdresse selbst bleibt netzfrei:
+import { ruefeSeiteAb } from './src/abruf.js';
+const abruf = await ruefeSeiteAb('cashconnect.online');
+const mitAbruf = analysiereAdresse('cashconnect.online', '', abruf);
 ```
 
 ---
@@ -115,8 +143,11 @@ nicht „harmlos", sondern „hier war zu wenig zu sehen".
 - Es bewertet **Merkmale, keine Absichten.** Ein sorgfältig gemachter Angriff von
   einer eigens registrierten, technisch sauber eingerichteten Domain besteht diese
   Prüfung.
-- Es fragt **nichts online ab** — kein Whois, keine Domain-Alterprüfung, keine
-  Sperrlisten. Das ist der Preis dafür, dass deine Mail das Gerät nicht verlässt.
+- Es fragt **keine Datenbanken ab** — kein Whois, keine Domain-Alterprüfung, keine
+  Sperrlisten. Mails verlassen das Gerät nie; bei Webseiten wird auf Wunsch nur die
+  Seite selbst abgerufen.
+- Es führt **kein JavaScript** aus. Was eine Seite erst im Browser nachlädt, sieht
+  der Abruf nicht.
 - `spf=pass` heißt nur: Die Mail kam wirklich von dieser Domain. Nicht: Die Domain
   ist ehrlich.
 
@@ -187,7 +218,7 @@ ersetzt keine Rechtsberatung.
 ## Entwicklung
 
 ```bash
-npm test          # 37 Tests, ohne externe Abhängigkeiten
+npm test          # 47 Tests, ohne externe Abhängigkeiten
 npm run build     # baut dist/ aus src/ und web/vorlage.html neu
 ```
 
@@ -200,7 +231,9 @@ src/
   utils.js           Linkextraktion, Homoglyphen, Levenshtein, Markenabgleich
   rules/*.js         die vier Regelgruppen für Mails, dazu website.js für Webadressen
   analyzer.js        Bewertung, Stufen, Handlungsempfehlung
+  abruf.js           Seitenabruf (nur Node, nicht im Browser-Bündel) - der einzige Netzzugriff
 bin/cli.js           Kommandozeilenfassung
+bin/server.js        lokaler Server für die Oberfläche mit Seitenabruf
 web/vorlage.html     Oberfläche mit Platzhaltern für den Prüfkern
 build.mjs            bündelt src/ + Vorlage zu einer einzelnen HTML-Datei
 beispiele/           drei Mails (zwei Betrugsfälle, eine echte) und eine erfundene Anlagebetrugs-Seite

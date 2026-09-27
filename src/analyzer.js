@@ -204,19 +204,23 @@ function naechsteSchritte(stufe, befunde) {
 
 /**
  * Eine Webadresse prüfen, optional zusammen mit dem kopierten Text der Seite.
- * Die Seite wird dabei nicht aufgerufen - das Werkzeug bleibt offline.
+ * Diese Funktion selbst geht nicht ins Netz. Soll die Seite abgerufen werden,
+ * erledigt das ruefeSeiteAb() aus src/abruf.js vorher, und das Ergebnis kommt
+ * hier als `abruf` herein.
  * @param {string} eingabe Adresse, z. B. "beispiel.online" oder "https://www.beispiel.de/login".
  * @param {string} [seitentext] Sichtbarer Text oder HTML-Quelltext der Seite.
+ * @param {object} [abruf] Ergebnis von ruefeSeiteAb().
  */
-export function analysiereAdresse(eingabe, seitentext = '') {
-  const { adresse, befunde: roh, textLaenge } = pruefeWebsite(eingabe, seitentext);
+export function analysiereAdresse(eingabe, seitentext = '', abruf = null) {
+  const { adresse, befunde: roh, textLaenge } = pruefeWebsite(eingabe, seitentext, abruf);
   const befunde = sortiere(roh);
   const { punkte, stufe, zaehlung } = bewerte(befunde);
 
+  const quelle = String(seitentext).trim() ? 'Seitentext' : 'abgerufene Seite';
   const sicherheit = textLaenge >= 200
     ? {
       stufe: 'mittel',
-      text: 'Adresse und Seitentext wurden geprüft. Wer die Seite betreibt, wie alt sie ist und ob schon vor ihr gewarnt wird, lässt sich offline nicht feststellen.',
+      text: `Adresse und ${quelle} wurden geprüft. Wer die Seite betreibt, wie alt sie ist und ob schon vor ihr gewarnt wird, zeigt die Seite selbst nicht.`,
     }
     : {
       stufe: 'niedrig',
@@ -242,6 +246,12 @@ export function analysiereAdresse(eingabe, seitentext = '') {
       verschluesselt: adresse.gueltig ? adresse.schema === 'https' : null,
       schemaAngenommen: adresse.gueltig && !adresse.schemaAngegeben,
     },
+    abruf: abruf
+      ? {
+        ok: abruf.ok, status: abruf.status, endUrl: abruf.endUrl, kette: abruf.kette,
+        fehler: abruf.fehler, abgeschnitten: abruf.abgeschnitten,
+      }
+      : null,
     naechsteSchritte: naechsteSchritteAdresse(stufe, befunde),
   };
 }
